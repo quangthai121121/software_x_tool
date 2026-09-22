@@ -1,0 +1,5 @@
+# Expected results of demo d1_earvn.
+# Filled in when the paper experiments are frozen (scripts/freeze_expected.py).
+demo: d1_earvn
+frozen: false
+metrics: []
