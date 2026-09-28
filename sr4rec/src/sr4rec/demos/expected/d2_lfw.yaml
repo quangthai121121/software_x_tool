@@ -1,5 +1,0 @@
-# Expected results of demo d2_lfw.
-# Filled in when the paper experiments are frozen (scripts/freeze_expected.py).
-demo: d2_lfw
-frozen: false
-metrics: []

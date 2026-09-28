@@ -1,5 +1,0 @@
-# Expected results of demo d3_cub.
-# Filled in when the paper experiments are frozen (scripts/freeze_expected.py).
-demo: d3_cub
-frozen: false
-metrics: []

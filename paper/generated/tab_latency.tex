@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\footnotesize
+\caption{CPU latency in ms (median / p95): batch 1, LR input 64 $\times$ 64, 4 threads, 13th Gen Intel(R) Core(TM) i7-13700F, 10 warm-up and 100 timed runs. Recognizer alone: ResNet-18 13.5 / 13.9.}
+\label{tab:latency}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrr}
+\toprule
+SR & SR only & SR + ResNet-18 \\
+\midrule
+bicubic & 1.1 / 1.2 & 15.7 / 16.6 \\
+realesrgan & 357.4 / 359.8 & 370.0 / 373.7 \\
+swinir\_classical & 501.3 / 505.3 & 514.0 / 597.1 \\
+swinir\_realworld & 537.5 / 630.7 & 551.4 / 639.0 \\
+span & 18.9 / 19.2 & 31.7 / 32.3 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}

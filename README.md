@@ -378,9 +378,12 @@ figures of the paper are generated from the run folders by `scripts/make_paper_a
 correctness check of Appendix C is `scripts/check_sr_fidelity.py`. Reference hardware:
 [docs/reference_environment.md](docs/reference_environment.md).
 
-> Status of this pre-release: the expected results are frozen after the paper experiments, so
-> `sr4rec reproduce` currently exits with code 3 and writes the demo configuration to
-> `runs/<demo>_config.yaml`, which you can run with `sr4rec run`.
+> Status of this pre-release: `sr4rec reproduce <demo>` needs that demo's dataset and SR weights
+> (see above) to be present locally; without them it exits with code 3 and writes the demo
+> configuration to `runs/<demo>_config.yaml`, which you can then run with `sr4rec run`. The
+> `quickstart` demo has no frozen expected results in this development version, so
+> `sr4rec reproduce quickstart` always exits with code 3 regardless of local data (see Appendix B
+> of the paper).
 
 ## 12. FAQ
 

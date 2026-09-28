@@ -1,0 +1,18 @@
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{D1: Rank-1 difference with bicubic (pp) and verdict by short side of the LR image; bins with fewer than 50 test images are not tested and show their size.}
+\label{tab:d1-size}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lllll}
+\toprule
+SR & $<$32 px & 32--63 px & 64--127 px & $\geq$128 px \\
+\midrule
+realesrgan & n.s. $-$0.4 & gain +3.0 & n.s. +1.4 & n.s. $-$0.3 \\
+swinir\_classical & harm $-$5.5 & harm $-$2.2 & n.s. $-$0.7 & n.s. $-$0.7 \\
+swinir\_realworld & n.s. $-$0.1 & gain +2.5 & n.s. +0.8 & n.s. +0.2 \\
+span & harm $-$5.0 & n.s. $-$1.0 & n.s. $-$0.6 & n.s. +0.3 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}

@@ -1,0 +1,18 @@
+\begin{table*}[t]
+\centering
+\footnotesize
+\caption{The demonstrations: best SR model, its Rank-1 difference with bicubic and the verdict. The runs vary dataset, mode and protocol together, so they illustrate the workflow across domains rather than isolate one factor. Hours: wall-clock time of the whole run on the reference machine.}
+\label{tab:summary}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lllllrrlrlr}
+\toprule
+Demo & Dataset & Mode & Protocol & Seeds & Classes & Test & Best SR & $\Delta$ (pp) & Verdict & Hours \\
+\midrule
+D1 & earvn & native-lr & matched & 3 & 164 & 5,678 & realesrgan & +1.4 & significant gain & 13.8 \\
+D1, fixed recognizer & earvn & native-lr & fixed\_recognizer & 3 & 164 & 5,678 & span & $-$4.2 & significant harm & 0.1 \\
+D2 & lfw & synthetic & matched & 3 & 62 & 602 & swinir\_classical & +0.8 & no difference & 0.8 \\
+D3 & cub & synthetic & matched & 1 & 200 & 5,794 & span & +1.2 & significant gain & 4.0 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table*}

@@ -1,15 +1,14 @@
-# Correctness checks reported in Appendix C of the paper (turned into generated/tab_validation.tex).
 checks:
 - component: SR loading and PSNR/SSIM (spandrel, Y channel, border 4)
   reference: published x4 results of SwinIR (DIV2K) and SPAN on Set5 and Set14
   criterion: PSNR within 0.05 dB
-  result: 001_classicalSR_DIV2K_s48w8_SwinIR-M_x4 Set5 x4 32.75 dB / 0.9021 (published 32.72 / 0.9021); Set14 and SPAN pending
+  result: SwinIR-M x4 Set5 32.75 dB / 0.9021 (published 32.72 / 0.9021); SPAN x4 Set5 32.20 / 0.8953 (published 32.20 / 0.8953); SwinIR-M x4 Set14 28.94 / 0.7914 (published 28.94 / 0.7914); SPAN x4 Set14 28.64 / 0.7828 (published 28.66 / 0.7834)
 - component: MATLAB-style bicubic
-  reference: BasicSR port of MATLAB imresize; MATLAB imresize outputs
+  reference: BasicSR port of MATLAB imresize
   criterion: at most 1 grey level after uint8 rounding
-  result: BasicSR - identical to 1e-5; MATLAB pending
+  result: identical to 1e-5 (BasicSR reference)
 - component: Bootstrap CI, permutation p, Holm
-  reference: scipy.stats.bootstrap, scipy.stats.permutation_test, statsmodels multipletests
+  reference: scipy.stats bootstrap and permutation_test; statsmodels Holm
   criterion: CI and p within 0.01; Holm within 1e-10
   result: passed (test suite)
 - component: Rank-k, macro precision, recall, F1

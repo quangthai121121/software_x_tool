@@ -1,0 +1,19 @@
+\begin{table*}[t]
+\centering
+\footnotesize
+\caption{D1: EarVN1.0, native low-resolution images, protocol matched, ResNet-18. Mean and sample standard deviation over seeds 0, 1, 2; $\Delta$, CI and $p$ compare each SR model with bicubic on the same 5,678 test images (paired bootstrap and sign-flip permutation test, Holm-corrected).}
+\label{tab:d1}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrrrrlrrl}
+\toprule
+SR & Rank-1 (\%) & Rank-5 (\%) & Macro F1 (\%) & $\Delta$ (pp) & 95\% CI (pp) & $p$ (Holm) & Same sign & Verdict \\
+\midrule
+bicubic (baseline) & 77.9 $\pm$ 0.3 & 93.2 $\pm$ 0.2 & 77.8 $\pm$ 0.4 &  &  &  &  &  \\
+realesrgan & \textbf{79.3 $\pm$ 0.3} & 93.5 $\pm$ 0.1 & 79.1 $\pm$ 0.3 & +1.4 & [+0.7, +2.0] & 0.0018 & 3/3 & significant gain \\
+swinir\_classical & 76.3 $\pm$ 0.4 & 92.4 $\pm$ 0.4 & 75.9 $\pm$ 0.3 & $-$1.6 & [$-$2.3, $-$1.0] & $<$0.001 & 3/3 & significant harm \\
+swinir\_realworld & 79.0 $\pm$ 0.5 & 93.2 $\pm$ 0.2 & 78.8 $\pm$ 0.6 & +1.1 & [+0.4, +1.8] & 0.0044 & 3/3 & significant gain \\
+span & 77.0 $\pm$ 0.5 & 92.6 $\pm$ 0.1 & 76.7 $\pm$ 0.4 & $-$0.9 & [$-$1.5, $-$0.3] & 0.0044 & 3/3 & significant harm \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table*}

@@ -47,10 +47,24 @@ MACRO_KEYS = {"d1": "DONE", "d1_fixed": "DONEFIXED", "d2": "DTWO", "d3": "DTHREE
 
 
 def tex(s) -> str:
-    return (str(s).replace("\\", "\\textbackslash{}").replace("_", "\\_").replace("%", "\\%").replace("&", "\\&")
+    t = " ".join(str(s).replace("▲", "").replace("▼", "").replace("●", "").split())
+    return (t.replace("\\", "\\textbackslash{}").replace("_", "\\_\\allowbreak{}").replace("%", "\\%").replace("&", "\\&")
             .replace("#", "\\#").replace("−", "$-$").replace("±", "$\\pm$").replace("×", "$\\times$")
-            .replace("▲", "$\\blacktriangle$").replace("▼", "$\\blacktriangledown$").replace("●", "$\\bullet$")
             .replace("≥", "$\\geq$").replace("<", "$<$").replace("–", "--").replace("Δ", "$\\Delta$"))
+
+
+def verdict_tag(verdict: str) -> str:
+    if verdict.startswith("▲"):
+        return "gain"
+    if verdict.startswith("▼"):
+        return "harm"
+    if verdict.startswith("●"):
+        return "n.s."
+    return tex(verdict)
+
+
+def size_cell(verdict: str, delta) -> str:
+    return tex(f"{verdict_tag(verdict)} {fmt_delta(delta)}")
 
 
 class RunData:
@@ -115,9 +129,10 @@ class RunData:
 # ----------------------------------------------------------------------------- tables
 
 
-def _table(caption: str, label: str, cols: str, header: list[str], rows: list[list[str]], star: bool = False) -> str:
+def _table(caption: str, label: str, cols: str, header: list[str], rows: list[list[str]],
+           star: bool = False, pos: str = "t") -> str:
     env = "table*" if star else "table"
-    out = [f"\\begin{{{env}}}[t]", "\\centering", "\\footnotesize", f"\\caption{{{caption}}}", f"\\label{{{label}}}",
+    out = [f"\\begin{{{env}}}[{pos}]", "\\centering", "\\footnotesize", f"\\caption{{{caption}}}", f"\\label{{{label}}}",
            "\\begin{adjustbox}{max width=\\linewidth}", f"\\begin{{tabular}}{{{cols}}}", "\\toprule",
            " & ".join(header) + " \\\\", "\\midrule"]
     for r in rows:
@@ -172,12 +187,12 @@ def tab_d1_by_size(d1: RunData) -> str:
                 elif st["verdict"] == INSUFFICIENT:
                     cells.append(f"n = {int(st['n_images'])}")
                 else:
-                    cells.append(tex(f"{st['verdict'].split(' ')[0]} {fmt_delta(st['delta'])}"))
+                    cells.append(size_cell(st["verdict"], st["delta"]))
             rows.append(cells)
     head = (["Backbone"] if len(d1.backbones) > 1 else []) + ["SR"] + [tex(SIZE_BIN_LABELS[s]) for s in SIZE_BINS]
     return _table("D1: Rank-1 difference with bicubic (pp) and verdict by short side of the LR image; bins with "
                   "fewer than 50 test images are not tested and show their size.", "tab:d1-size",
-                  ("l" if len(d1.backbones) > 1 else "") + "lllll", head, rows)
+                  ("l" if len(d1.backbones) > 1 else "") + "lllll", head, rows, pos="H")
 
 
 def tab_d2(d2: RunData) -> str:
@@ -241,8 +256,8 @@ def tab_validation(validation: Path) -> str:
             for c in v["checks"]]
     col = ">{\\raggedright\\arraybackslash}p"
     return _table("Correctness checks of SR4Rec against reference implementations.", "tab:validation",
-                  f"{col}{{3.0cm}}{col}{{4.2cm}}{col}{{3.4cm}}{col}{{3.4cm}}",
-                  ["Component", "Reference", "Criterion", "Result"], rows, star=True)
+                  f"{col}{{2.4cm}}{col}{{3.0cm}}{col}{{2.6cm}}{col}{{4.6cm}}",
+                  ["Component", "Reference", "Criterion", "Result"], rows, pos="H")
 
 
 # ----------------------------------------------------------------------------- figures
@@ -285,11 +300,12 @@ def fig_d2_fidelity(d2: RunData, out: Path) -> None:
     markers = {"bicubic degradation": "o", "real-world degradation": "^", "n/a": "s", "unknown": "D"}
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.9))
     for ax, col, xlabel in zip(axes, ("psnr", "ssim"), ("PSNR (dB, Y channel)", "SSIM (Y channel)"), strict=True):
-        for m in ["bicubic"] + d2.sr:
+        for i, m in enumerate(["bicubic"] + d2.sr):
             acc = 100 * d2.mean(b, m, "rank1")
             sd = 100 * float(np.std(d2.per_seed(b, m, "rank1"), ddof=1)) if len(d2.seeds) > 1 else 0.0
             kind = d2.trained_for(m)
-            ax.errorbar(q.loc[m, col], acc, yerr=sd, marker=markers[kind], color="black", capsize=2, linestyle="none")
+            color = style.style_for(i)["color"]
+            ax.errorbar(q.loc[m, col], acc, yerr=sd, marker=markers[kind], color=color, capsize=2, linestyle="none")
             ax.annotate(m, (q.loc[m, col], acc), textcoords="offset points", xytext=(5, 3), fontsize=6.5)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(f"Rank-1, {backbone_display(b)} (%)")

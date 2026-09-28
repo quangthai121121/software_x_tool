@@ -23,9 +23,10 @@ def main() -> None:
     m = m[m["size_bin"] == "all"]
     rows = []
     for (b, meth), g in m.groupby(["backbone", "method"], sort=False):
-        sd = 100 * g["rank1"].std(ddof=1) if len(g) > 1 else 0.0
-        rows.append({"backbone": b, "method": meth, "metric": "rank1", "value_pct": round(100 * g["rank1"].mean(), 4),
-                     "tolerance_pp": round(max(0.2, 3 * sd), 2)})
+        sd = float(100 * g["rank1"].std(ddof=1)) if len(g) > 1 else 0.0
+        rows.append({"backbone": b, "method": meth, "metric": "rank1",
+                     "value_pct": float(round(100 * g["rank1"].mean(), 4)),
+                     "tolerance_pp": float(round(max(0.2, 3 * sd), 2))})
     out = EXPECTED / f"{a.demo}.yaml"
     header = f"# Expected results of demo {a.demo}, frozen from {a.run.name}.\n"
     out.write_text(header + yaml.safe_dump({"demo": a.demo, "frozen": True, "metrics": rows}, sort_keys=False))
