@@ -1,4 +1,4 @@
-"""Freeze the expected results of a demo from a finished run (maintainers, after the paper runs).
+"""Freeze the expected results of a demo from a finished run (maintainers, after a demo finishes).
 
 Tolerance per backbone and method: max(0.2 pp, 3 x the standard deviation over seeds).
 

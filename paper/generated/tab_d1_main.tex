@@ -1,19 +1,22 @@
-\begin{table*}[t]
+\begin{table}[H]
 \centering
 \footnotesize
-\caption{D1: EarVN1.0, native low-resolution images, protocol matched, ResNet-18. Mean and sample standard deviation over seeds 0, 1, 2; $\Delta$, CI and $p$ compare each SR model with bicubic on the same 5,678 test images (paired bootstrap and sign-flip permutation test, Holm-corrected).}
+\caption{D1: EarVN1.0, native low-resolution images, protocol matched, ResNet-18, one column per SR model. Mean and sample standard deviation over seeds 0, 1, 2; $\Delta$, CI and $p$ compare each SR model with bicubic on the same 5,678 test images (paired bootstrap and sign-flip permutation test, Holm-corrected).}
 \label{tab:d1}
 \begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{lrrrrlrrl}
+\begin{tabular}{l>{\centering\arraybackslash}p{1.85cm}>{\centering\arraybackslash}p{1.85cm}>{\centering\arraybackslash}p{1.85cm}>{\centering\arraybackslash}p{1.85cm}>{\centering\arraybackslash}p{1.85cm}}
 \toprule
-SR & Rank-1 (\%) & Rank-5 (\%) & Macro F1 (\%) & $\Delta$ (pp) & 95\% CI (pp) & $p$ (Holm) & Same sign & Verdict \\
+ & bicubic (baseline) & realesrgan & swinir\_\allowbreak{}classical & swinir\_\allowbreak{}realworld & span \\
 \midrule
-bicubic (baseline) & 77.9 $\pm$ 0.3 & 93.2 $\pm$ 0.2 & 77.8 $\pm$ 0.4 &  &  &  &  &  \\
-realesrgan & \textbf{79.3 $\pm$ 0.3} & 93.5 $\pm$ 0.1 & 79.1 $\pm$ 0.3 & +1.4 & [+0.7, +2.0] & 0.0018 & 3/3 & significant gain \\
-swinir\_classical & 76.3 $\pm$ 0.4 & 92.4 $\pm$ 0.4 & 75.9 $\pm$ 0.3 & $-$1.6 & [$-$2.3, $-$1.0] & $<$0.001 & 3/3 & significant harm \\
-swinir\_realworld & 79.0 $\pm$ 0.5 & 93.2 $\pm$ 0.2 & 78.8 $\pm$ 0.6 & +1.1 & [+0.4, +1.8] & 0.0044 & 3/3 & significant gain \\
-span & 77.0 $\pm$ 0.5 & 92.6 $\pm$ 0.1 & 76.7 $\pm$ 0.4 & $-$0.9 & [$-$1.5, $-$0.3] & 0.0044 & 3/3 & significant harm \\
+Rank-1 (\%) & 77.9 $\pm$ 0.3 & \textbf{79.3 $\pm$ 0.3} & 76.3 $\pm$ 0.4 & 79.0 $\pm$ 0.5 & 77.0 $\pm$ 0.5 \\
+Rank-5 (\%) & 93.2 $\pm$ 0.2 & 93.5 $\pm$ 0.1 & 92.4 $\pm$ 0.4 & 93.2 $\pm$ 0.2 & 92.6 $\pm$ 0.1 \\
+Macro F1 (\%) & 77.8 $\pm$ 0.4 & 79.1 $\pm$ 0.3 & 75.9 $\pm$ 0.3 & 78.8 $\pm$ 0.6 & 76.7 $\pm$ 0.4 \\
+$\Delta$ (pp) & & +1.4 & $-$1.6 & +1.1 & $-$0.9 \\
+95\% CI (pp) & & [+0.7, +2.0] & [$-$2.3, $-$1.0] & [+0.4, +1.8] & [$-$1.5, $-$0.3] \\
+$p$ (Holm) & & 0.0018 & $<$0.001 & 0.0044 & 0.0044 \\
+Same sign & & 3/3 & 3/3 & 3/3 & 3/3 \\
+Verdict & & significant gain & significant harm & significant gain & significant harm \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\end{table*}
+\end{table}

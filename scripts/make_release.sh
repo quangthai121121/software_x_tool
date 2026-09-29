@@ -17,16 +17,19 @@ mkdir -p "$OUT"
 for d in src tests docs scripts examples; do
     cp -R "$d" "$OUT/$d"
 done
-# The release does not ship its own copy of make_release.sh.
-rm -f "$OUT/scripts/make_release.sh"
+# The release does not ship its own copy of make_release.sh, nor the scripts that exist only to
+# build the SoftwareX paper's tables, figures and Appendix C validation check (they read runs/ and
+# write into paper/, which this research repo keeps but the release does not).
+rm -f "$OUT/scripts/make_release.sh" "$OUT/scripts/make_paper_assets.py" \
+      "$OUT/scripts/make_qualitative_figure.py" "$OUT/scripts/check_sr_fidelity.py"
 
 mkdir -p "$OUT/.github"
 cp -R .github/. "$OUT/.github/"
 
 # Top-level project files.
 for f in README.md LICENSE CITATION.cff codemeta.json CHANGELOG.md CODE_OF_CONDUCT.md \
-         CONTRIBUTING.md DATA_AND_MODEL_LICENSES.md pyproject.toml .gitignore \
-         .pre-commit-config.yaml .zenodo.json; do
+         CONTRIBUTING.md DATA_AND_MODEL_LICENSES.md pyproject.toml requirements.lock \
+         .gitignore .pre-commit-config.yaml .zenodo.json; do
     cp "$f" "$OUT/$f"
 done
 

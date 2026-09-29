@@ -1,4 +1,4 @@
-"""B1.6, B1.7, B1.13 and the padding / tiling helpers."""
+"""SR sources and the padding / tiling helpers."""
 
 import os
 import textwrap

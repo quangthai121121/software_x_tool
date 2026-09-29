@@ -1,19 +1,19 @@
-\begin{table}[t]
+\begin{table}[H]
 \centering
 \footnotesize
-\caption{D2: LFW (people with at least 20 images), synthetic $\times$4, ResNet-18, seeds 0, 1, 2. PSNR and SSIM on the Y channel of the test images; Rank-1 in \%.}
+\caption{D2: LFW (people with at least 20 images), synthetic $\times$4, ResNet-18, one column per SR model, seeds 0, 1, 2. PSNR and SSIM on the Y channel of the test images; Rank-1 in \%.}
 \label{tab:d2}
 \begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{llrrrrl}
+\begin{tabular}{l>{\centering\arraybackslash}p{1.68cm}>{\centering\arraybackslash}p{1.68cm}>{\centering\arraybackslash}p{1.68cm}>{\centering\arraybackslash}p{1.68cm}>{\centering\arraybackslash}p{1.68cm}>{\centering\arraybackslash}p{1.68cm}}
 \toprule
-SR & Trained for & PSNR (dB) & SSIM & Rank-1 (\%) & $\Delta$ (pp) & Verdict \\
+ & bicubic (baseline) & realesrgan & swinir\_\allowbreak{}classical & swinir\_\allowbreak{}realworld & span & HR (upper bound) \\
 \midrule
-bicubic (baseline) & n/a & 30.39 & 0.899 & 90.4 $\pm$ 2.3 &  &  \\
-realesrgan & real-world degradation & 28.09 & 0.867 & 89.5 $\pm$ 1.2 & $-$0.9 & no difference \\
-swinir\_classical & bicubic degradation & 35.66 & 0.951 & 91.1 $\pm$ 1.4 & +0.8 & no difference \\
-swinir\_realworld & real-world degradation & 29.12 & 0.883 & 90.0 $\pm$ 1.2 & $-$0.3 & no difference \\
-span & bicubic degradation & 35.56 & 0.949 & 90.9 $\pm$ 1.8 & +0.6 & no difference \\
-HR (upper bound) & n/a & -- & -- & 92.9 $\pm$ 1.7 &  &  \\
+Trained for & n/a & real-world deg. & bicubic deg. & real-world deg. & bicubic deg. & n/a \\
+PSNR (dB) & 30.39 & 28.09 & 35.66 & 29.12 & 35.56 & -- \\
+SSIM & 0.899 & 0.867 & 0.951 & 0.883 & 0.949 & -- \\
+Rank-1 (\%) & 90.4 $\pm$ 2.3 & 89.5 $\pm$ 1.2 & 91.1 $\pm$ 1.4 & 90.0 $\pm$ 1.2 & 90.9 $\pm$ 1.8 & 92.9 $\pm$ 1.7 \\
+$\Delta$ (pp) & & $-$0.9 & +0.8 & $-$0.3 & +0.6 & \\
+Verdict & & no difference & no difference & no difference & no difference & \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}

@@ -116,19 +116,16 @@
 
 %% 150-200 words. Write last (plan D5.2).
 \begin{abstract}
-Super-resolution (SR) is often placed in front of recognition models that operate on low-resolution
-images, yet SR models are trained and ranked by image-fidelity metrics that do not say whether a
-recognizer becomes more accurate. SR4Rec is an open-source Python toolkit that answers this question
-for a user's own dataset and SR models. From one configuration file and three commands, it checks
-the dataset, builds a closed-set split, produces low-resolution inputs, runs the bicubic baseline and
-every SR model, trains a recognizer for each image pipeline, and compares each SR model with bicubic
-using paired statistics over test images. The result is a self-contained report with Rank-1, Rank-5,
-CMC, macro precision, recall and F1, PSNR and SSIM, results by image size, CPU latency and
-before/after-SR panels, and a fingerprint of the code, data hashes and weights.
-On native ear images (D1, matched), real-world SR raised Rank-1 (Real-ESRGAN $+1.4$\,pp;
-SwinIR real-world $+1.1$\,pp) while bicubic-trained models reduced it; training the recognizer
-on bicubic images only reversed every verdict. On synthetic LFW faces (D2), no SR model
-changed Rank-1 significantly.
+Super-resolution (SR) is often placed in front of recognition models that operate on
+low-resolution images, yet SR models are trained and ranked by image-fidelity metrics that do not
+say whether a recognizer becomes more accurate. SR4Rec is an open-source Python toolkit that
+answers this question for a user's own data: from one configuration file and three commands, it
+builds a closed-set split, runs bicubic and every SR model, trains a recognizer per pipeline, and
+compares each with bicubic using paired statistics over test images, reporting Rank-1, a breakdown
+by image size, and a reproducibility fingerprint. On native ear images (D1, matched), real-world SR
+raised Rank-1 (Real-ESRGAN $+1.4$\,pp; SwinIR real-world $+1.1$\,pp) while bicubic-trained models
+reduced it; training on bicubic images only reversed every verdict. On synthetic LFW faces (D2), no
+SR model changed Rank-1 significantly.
 \end{abstract}
 
 \begin{keyword}
@@ -150,23 +147,21 @@ super-resolution \sep image recognition \sep biometrics \sep evaluation protocol
 \hline
 \textbf{Nr.} & \textbf{Code metadata description} & \textbf{Value} \\
 \hline
-C1 & Current code version & v0.1.1 \\
+C1 & Current code version & v0.1.2 \\
 \hline
-C2 & Permanent link to code/repository used for this code version & \url{https://github.com/quangthai121121/sr4rec/tree/v0.1.1} \\
+C2 & Permanent GitHub link to code/repository used for this code version & \url{https://github.com/quangthai121121/sr4rec/tree/v0.1.2} \\
 \hline
-C3 & Permanent link to Reproducible Capsule & \url{https://doi.org/10.5281/zenodo.23011230} \\
+C3 & Legal Code License & MIT \\
 \hline
-C4 & Legal Code License & MIT \\
+C4 & Code versioning system used & git \\
 \hline
-C5 & Code versioning system used & git \\
+C5 & Software code languages, tools, and services used & Python, PyTorch, timm, spandrel, NumPy, SciPy, statsmodels, scikit-learn, pandas, matplotlib, pydantic, Jinja2 \\
 \hline
-C6 & Software code languages, tools, and services used & Python, PyTorch, timm, spandrel, NumPy, SciPy, statsmodels, scikit-learn, pandas, matplotlib, pydantic, Jinja2 \\
+C6 & Compilation requirements, operating environments \& dependencies & Python $\geq$ 3.10; PyTorch $\geq$ 2.3; Linux, Windows or macOS; CUDA or Apple GPU optional; dependencies in \texttt{pyproject.toml} \\
 \hline
-C7 & Compilation requirements, operating environments \& dependencies & Python $\geq$ 3.10; PyTorch $\geq$ 2.3; Linux, Windows or macOS; CUDA or Apple GPU optional; dependencies in \texttt{pyproject.toml} \\
+C7 & If available Link to developer documentation/manual & \url{https://github.com/quangthai121121/sr4rec\#readme} and \texttt{docs/} \\
 \hline
-C8 & If available Link to developer documentation/manual & \url{https://github.com/quangthai121121/sr4rec\#readme} and \texttt{docs/} \\
-\hline
-C9 & Support email for questions & \texttt{thailq@hub.edu.vn} \\
+C8 & Support email for questions & \texttt{thailq@hub.edu.vn} \\
 \hline
 \end{tabular}
 \caption{Code metadata (mandatory).}
@@ -276,7 +271,7 @@ an SR model trains only the recognizers of that model, and a stale result cannot
 mistake. Each run also writes \texttt{fingerprint.yaml} with the software and hardware environment
 and the hashes of the data and of every weight file.
 
-\begin{figure}[t]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_architecture.png}
 \caption{Architecture of SR4Rec. The CLI and the Python API share one \texttt{Run} class; expensive
@@ -324,9 +319,14 @@ CMC curve, macro precision, recall and F1, and, in synthetic mode, PSNR and SSIM
 For every backbone and SR model, per-image Rank-1 correctness is averaged over seeds and compared
 with bicubic on the same images: the difference is given with a 95\% percentile bootstrap
 interval~\cite{efron1993bootstrap} and a paired sign-flip permutation test~\cite{good2005permutation},
-Holm-corrected~\cite{holm1979} over the SR models of each backbone. A fixed rule turns these into a
-verdict: significant gain, significant harm or no difference. The same analysis is repeated in four
-bins of LR image size.
+Holm-corrected~\cite{holm1979} over the SR models of each backbone at $\alpha = 0.05$. An SR model
+is labelled a significant gain or significant harm only when both conditions hold: the
+Holm-corrected $p$ is below $\alpha$ and the bootstrap interval excludes zero; otherwise the
+verdict is no difference. Like any hard threshold, this rule can give a change just inside or just
+outside the boundary the opposite-sounding label, and it says nothing about agreement across
+training seeds by itself: a verdict computed from a single seed (D3, Section~\ref{sec:examples}) is
+reported with that qualification rather than treated as equivalent to a multi-seed verdict. The
+same analysis is repeated in four bins of LR image size.
 
 \paragraph{Outputs and reproduction} A run folder contains \texttt{report.md}, which answers the
 question in at most three rule-generated sentences followed by the tables and figures, the CSV files
@@ -373,7 +373,9 @@ Version 0.1 addresses closed-set identification only; verification and open-set 
 attribute classification, are not included. Synthetic degradation is limited to bicubic
 downsampling with one scale factor per run. The training recipe is fixed by design, so that all SR models are compared under identical
 conditions; per-model tuning is not attempted. CPU latency is not measured for SR models given as images. Runs use one
-device.
+device. All demonstrations in this article report ResNet-18; MobileNetV3-Small and ConvNeXt-Tiny
+are validated (Section~\ref{sec:functionalities}) but were not run for these experiments, so
+whether the conclusions hold across backbones is untested here.
 
 %% ------------------------------------------------------------------------ 3. Examples (1000-1100 words)
 \section{Illustrative examples}
@@ -384,12 +386,11 @@ frozen with tolerances in the package, and turned into the tables and figures be
 \texttt{scripts/make\_paper\_assets.py}.
 
 \paragraph{Quickstart} SR4Rec installs with \texttt{pip install -e .} from a repository clone.
-\texttt{sr4rec reproduce quickstart} writes the demo configuration because the quickstart expected
-results are not frozen in this development version. \texttt{sr4rec run} then executes that
-configuration on a small subset of Oxford-IIIT Pet~\cite{parkhi2012pets} with an SR model given as
-Python code, on the reference machine, in under one minute. Appendix~B shows the console session
-(\texttt{init}, \texttt{run -{}-dry-run}, \texttt{run} and \texttt{reproduce}); the README walks
-that path step by step.
+\texttt{sr4rec reproduce quickstart} retrains a small subset of Oxford-IIIT Pet~\cite{parkhi2012pets}
+with an SR model given as Python code, on the reference machine, in under one minute, and grades
+the result against the frozen tolerances. Appendix~B shows the console session (\texttt{init},
+\texttt{run -{}-dry-run}, \texttt{run} and \texttt{reproduce}); the README walks that path step by
+step.
 
 \paragraph{Experimental setup} All demonstrations compare bicubic with four validated SR models
 at scale 4: SwinIR classical~\cite{liang2021swinir} and SPAN~\cite{wan2024span}, trained for bicubic
@@ -397,7 +398,8 @@ degradation, and Real-ESRGAN~\cite{wang2021realesrgan} and SwinIR real-world, tr
 degradation~\cite{zhang2021bsrgan}. The two SwinIR models share one architecture, so their difference
 isolates the training degradation. Every run uses the same untuned recipe: an ImageNet-pretrained
 ResNet-18~\cite{he2016resnet} fine-tuned for 30 epochs, input 224 $\times$ 224, protocol matched.
-D1 uses EarVN1.0~\cite{hoang2019earvn} at its native resolution (\DONENumClasses{} identities,
+D1 uses EarVN1.0~\cite{hoang2019earvn}, published by a co-author of this paper, at its native
+resolution (\DONENumClasses{} identities,
 \DONENumTest{} test images); D2 uses LFW~\cite{huang2007lfw}, people with at least 20 images,
 downsampled by 4 (\DTWONumClasses{} identities); D1 and D2 run seeds 0, 1 and 2. D3 is a single run
 on CUB-200-2011~\cite{wah2011cub} with its official split and carries no comparative claim. The D1
@@ -406,9 +408,9 @@ configuration is listed in full in Appendix~A.
 \paragraph{Does SR help on natively small images? (D1)} Under the matched protocol, Real-ESRGAN and
 SwinIR real-world improved Rank-1 on the same \DONENumTest{} test images (Table~\ref{tab:d1}:
 $+1.4$ and $+1.1$\,pp; Holm $p=0.0018$ and $0.0044$; same sign on all three seeds). SwinIR
-classical and SPAN reduced Rank-1 ($-1.6$ and $-0.9$\,pp). The two SwinIR models share one
-architecture, so the sign follows the training degradation, not the network. The best matched
-result is still only $+1.4$\,pp.
+classical and SPAN reduced Rank-1 ($-1.6$ and $-0.9$\,pp): the sign follows the training
+degradation, not the network, since the two SwinIR variants otherwise share one architecture. The
+best matched result is still only $+1.4$\,pp.
 
 \generated{tab_d1_main.tex}{D1 main results, from scripts/make\_paper\_assets.py}{tab:d1}
 
@@ -428,16 +430,22 @@ intervals over test images; hollow markers are bins with fewer than 50 test imag
 
 \paragraph{What the protocol changes} Running D1 with the \texttt{fixed\_recognizer} protocol, where
 one recognizer is trained on bicubic images and SR is applied at test time only, turns every
-significant gain into significant harm (Table~\ref{tab:summary}: even the least-harmed model, SPAN,
-falls to $-4.2$\,pp). The
-recognizer then sees SR outputs outside its training domain, while bicubic stays in domain.
+significant gain into significant harm (Table~\ref{tab:summary} gives the least-harmed model,
+SPAN, at $-4.2$\,pp; the per-model breakdown is Table~\ref{tab:d1-fixed}). The recognizer then sees
+SR outputs outside its training domain, while bicubic stays in domain.
 
-\paragraph{Does image fidelity predict recognition? (D2)} PSNR and SSIM rank the models in the same
-order as Rank-1 (Table~\ref{tab:d2}, Figure~\ref{fig:fidelity}: SwinIR classical $35.66$\,dB /
-Rank-1 $91.1\%$; SPAN $35.56$\,dB / $90.9\%$; the real-world pair below bicubic on both). No
-difference with bicubic is significant (best $+0.8$\,pp). Fidelity therefore does not tell whether
-an SR model helps recognition; the SwinIR pair again isolates training degradation on a controlled
-bicubic input. No face image is shown in this article.
+\paragraph{Does image fidelity predict recognition? (D2)} PSNR and SSIM rank the four SR models in
+the same order as Rank-1 on D2 (Table~\ref{tab:d2}, Figure~\ref{fig:fidelity}: SwinIR classical
+$35.66$\,dB / Rank-1 $91.1\%$; SPAN $35.56$\,dB / $90.9\%$; the real-world pair below bicubic on
+both), but none of these differences with bicubic is significant (best $+0.8$\,pp): fidelity alone
+does not separate the models on this dataset. The dissociation shows up across demonstrations
+instead. The two models with the highest fidelity in D2, both trained for bicubic degradation, are
+the same two that significantly reduced Rank-1 on D1's native images
+(Section~\ref{sec:examples}); the two with the lowest fidelity, both trained for real-world
+degradation, are the ones that significantly raised it. A fidelity ranking computed on one dataset
+therefore points the wrong way for the other. As in D1, the SwinIR pair's shared architecture
+places the cause in training degradation, not the network. No face image is shown in this
+article.
 
 \generated{tab_d2_fidelity.tex}{D2 fidelity and recognition, from scripts/make\_paper\_assets.py}{tab:d2}
 
@@ -462,7 +470,7 @@ model corrected (rows one and three) or broke (rows two and four) the bicubic pr
 by a fixed rule rather than by hand. Across the test set, \QualCorrected{} images are corrected and
 \QualDegraded{} degraded by at least one SR model.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth,height=0.78\textheight,keepaspectratio]{figures/fig_d1_qualitative.png}
 \caption{D1: LR input, bicubic, the four SR models; solid green frame: correct identity; dashed
@@ -483,9 +491,16 @@ the recognizer), and SwinIR classical widens the same way once combined with the
 \paragraph{Reproduction} Reproduction is offered at two levels. \texttt{sr4rec reproduce d1\_earvn
 -{}-eval-only}, run against the released recognizer checkpoints, recomputes the SR outputs and the
 evaluation in $4.3$ hours and matches the frozen values to two decimal places of Rank-1
-(percentage points). Without the flag the command retrains the demonstration, \DONEHours{} hours
-on the reference machine, and returns values within the frozen tolerance. Both exit with
-a distinct code when a metric drifts.
+(percentage points); D2 and D3 match the same way. Without the flag the command retrains the
+demonstration, \DONEHours{} hours on the reference machine, and returns values within the frozen
+tolerance. Both exit with a distinct code when a metric drifts. These reproduction tolerances
+(0.01\,pp for \texttt{-{}-eval-only}; \texttt{max(0.2\,pp, 3$\times$} the standard deviation over
+seeds\texttt{)} for a full retrain) hold on the same type of hardware, as demonstrated for all
+three demonstrations above. Across GPU vendors or backends, expect larger deviations; this is
+documented as an expected limit, not a defect, in the reference environment notes. The tolerances say
+whether the software reproduces its own numbers, not whether an SR model's effect on Rank-1 is
+real, which is the separate question the paired statistics of Section~\ref{sec:functionalities}
+answer.
 
 %% ------------------------------------------------------------------------ 4. Impact (400-500 words)
 \section{Impact}
@@ -505,9 +520,21 @@ PSNR and SSIM ranked the models but no SR model changed Rank-1 significantly. A 
 reports only fidelity, or that applies SR only at test time, can therefore publish the opposite
 conclusion. SR4Rec makes those two checks part of the same run instead of a second codebase.
 
-The library is also a base that other recognition papers can reuse. SR models are inputs: a
-weights file, a short PyTorch class, or a folder of images. A group can therefore keep its own
-restorer and still use the split, the statistics and the report. The command-line interface and
+SR4Rec also turns three open questions raised by Section~\ref{sec:examples} into measurements
+rather than folklore, each checked against reference implementations (Table~\ref{tab:validation})
+and a validated statistical rule (Section~\ref{sec:functionalities}) before being trusted:
+\begin{itemize}
+  \item why the effect of SR on Rank-1 reverses between the matched and \texttt{fixed\_recognizer}
+    protocols;
+  \item at what image size, for a given dataset and backbone, the benefit of SR starts and stops,
+    beyond the one boundary D1 locates (Figure~\ref{fig:size});
+  \item whether the fidelity--recognition dissociation found for ears and faces
+    (Section~\ref{sec:examples}) holds for other biometric modalities.
+\end{itemize}
+
+The library is also a base that other recognition papers can reuse. It treats SR models as inputs
+of any kind (Section~\ref{sec:functionalities}), so a group can keep its own restorer and still
+use the split, the statistics and the report. The command-line interface and
 the Python API share one \texttt{Run} object; expensive steps are cached by content hash; every
 run writes a fingerprint. That cuts the usual rewrite of dataset checks, split code and tables
 when the next dataset arrives. Published demonstrations can be compared with frozen expected
@@ -538,7 +565,7 @@ that could have appeared to influence the work reported in this paper.
 \section*{Data availability}
 The datasets used in the demonstrations are public and must be obtained from their original
 sources; SR4Rec provides scripts that convert them. The archived code, expected results and
-recognizer checkpoints are available at \url{https://doi.org/10.5281/zenodo.23011230}.
+recognizer checkpoints are available at \url{https://doi.org/10.5281/zenodo.23041108}.
 
 \section*{Acknowledgements}
 The authors thank Ho Chi Minh City Open University and Ho Chi Minh University of Banking for institutional support.
@@ -591,8 +618,8 @@ config:
 \label{app:console}
 Listing~\ref{lst:console} is a session on the reference machine (NVIDIA GeForce RTX 3080).
 \texttt{init} writes a configuration and refuses \texttt{run} until each \texttt{[CHECK]} marker is
-removed. \texttt{sr4rec reproduce quickstart} then reports that the quickstart expected results are
-not frozen in this development version and writes the demo configuration for \texttt{run}.
+removed. \texttt{sr4rec reproduce quickstart} then retrains the demo and grades the result against
+the frozen tolerances.
 
 \begin{lstlisting}[style=srsh,caption={Console session: \texttt{init}, \texttt{run -{}-dry-run},
 \texttt{run} and \texttt{reproduce} on the Oxford-IIIT Pet quickstart.},label=lst:console]
@@ -641,17 +668,45 @@ Done in 8 s. Answer: No SR model changed Rank-1 accuracy significantly on any ba
 Report: runs/pets_mini_2026-09-24_1109/report.md
 
 $ sr4rec reproduce quickstart
-Error: The expected results of demo 'quickstart' have not been frozen in this version of SR4Rec, so there is nothing to compare with. The demo configuration was written to runs/quickstart_config.yaml; run it with `sr4rec run runs/quickstart_config.yaml`.
+SR4Rec 0.1.0.dev0: run folder runs/reproduce_quickstart
+  Downsampling 300 HR images x4 (MATLAB-style bicubic)
+  SR bicubic: 300 images
+    bicubic: 300/300 images
+  SR tiny_espcn: 300 images
+    tiny_espcn: 300/300 images
+  Training 1/3: resnet18, train images: bicubic, seed 0
+      epoch 1/3  val Rank-1 10.0%
+      epoch 2/3  val Rank-1 20.0%
+      epoch 3/3  val Rank-1 35.0%
+  Training 2/3: resnet18, train images: tiny_espcn, seed 0
+      epoch 1/3  val Rank-1 15.0%
+      epoch 2/3  val Rank-1 15.0%
+      epoch 3/3  val Rank-1 25.0%
+  Training 3/3: resnet18, train images: hr, seed 0
+      epoch 1/3  val Rank-1 10.0%
+      epoch 2/3  val Rank-1 20.0%
+      epoch 3/3  val Rank-1 30.0%
+  Measuring CPU latency
+Done in 28 s. Answer: No SR model changed Rank-1 accuracy significantly on any backbone.
+  ResNet-18: best SR tiny_espcn, -2.0 pp vs bicubic, ● no difference
+Report: runs/reproduce_quickstart/report.md
+backbone            method            expected       got  tolerance  result
+resnet18            bicubic              32.00     32.00       0.20  OK
+resnet18            tiny_espcn           30.00     30.00       0.20  OK
+resnet18            hr                   29.00     29.00       0.20  OK
+Demo 'quickstart' reproduced within tolerance.
 \end{lstlisting}
 
 \section{Correctness checks and detailed results}
 \label{app:details}
 Table~\ref{tab:validation} lists the checks of SR4Rec against reference implementations; the test
 suite runs the statistical and metric checks on every change. Table~\ref{tab:d1-size} gives the D1
-results per size bin.
+results per size bin. Table~\ref{tab:d1-fixed} gives the per-model breakdown behind the
+\texttt{fixed\_recognizer} comparison summarized in Section~\ref{sec:examples}.
 
 \generated{tab_validation.tex}{correctness checks, from paper/validation.yaml}{tab:validation}
 \generated{tab_d1_by_size.tex}{D1 results by size bin, from scripts/make\_paper\_assets.py}{tab:d1-size}
+\generated{tab_d1_fixed_main.tex}{D1 fixed\_recognizer per-model breakdown, from scripts/make\_paper\_assets.py}{tab:d1-fixed}
 \FloatBarrier
 
 \bibliographystyle{elsarticle-num}

@@ -1,0 +1,10 @@
+Super-resolution (SR) is often placed in front of recognition models that operate on
+low-resolution images, yet SR models are trained and ranked by image-fidelity metrics that do not
+say whether a recognizer becomes more accurate. SR4Rec is an open-source Python toolkit that
+answers this question for a user's own data: from one configuration file and three commands, it
+builds a closed-set split, runs bicubic and every SR model, trains a recognizer per pipeline, and
+compares each with bicubic using paired statistics over test images, reporting Rank-1, a breakdown
+by image size, and a reproducibility fingerprint. On native ear images (D1, matched), real-world SR
+raised Rank-1 (Real-ESRGAN +1.4 pp; SwinIR real-world +1.1 pp) while bicubic-trained models
+reduced it; training on bicubic images only reversed every verdict. On synthetic LFW faces (D2), no
+SR model changed Rank-1 significantly.

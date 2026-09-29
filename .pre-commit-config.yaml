@@ -6,11 +6,6 @@ repos:
         args: [--fix]
   - repo: local
     hooks:
-      - id: english-only
-        name: English-only text
-        entry: python scripts/check_english.py
-        language: system
-        pass_filenames: false
       - id: config-docs
         name: Configuration docs up to date
         entry: python scripts/make_config_docs.py

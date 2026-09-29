@@ -1,4 +1,4 @@
-"""B2.3 (MATLAB bicubic) and B1.5 (letterbox)."""
+"""MATLAB-style bicubic resize and letterbox."""
 
 from pathlib import Path
 

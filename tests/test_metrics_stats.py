@@ -1,4 +1,4 @@
-"""B1.17, B2.4, B2.5: recognition metrics, image quality and statistics."""
+"""Recognition metrics, image quality and statistics."""
 
 import numpy as np
 import pytest

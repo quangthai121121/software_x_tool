@@ -146,33 +146,66 @@ def _bb_prefix(run: RunData, b: str) -> list[str]:
 
 
 def tab_d1_main(d1: RunData) -> str:
-    rows = []
-    for b in d1.backbones:
-        if rows:
-            rows.append(["MIDRULE"])
-        best = max(d1.mean(b, m, "rank1") for m in ["bicubic"] + d1.sr)
-        for m in ["bicubic"] + d1.sr:
-            acc = tex(fmt_mean_sd(d1.per_seed(b, m, "rank1")))
-            if abs(d1.mean(b, m, "rank1") - best) < 1e-12:
-                acc = f"\\textbf{{{acc}}}"
-            cells = _bb_prefix(d1, b) + [tex(LABEL.get(m, m)), acc, tex(fmt_mean_sd(d1.per_seed(b, m, "rank5"))),
-                                         tex(fmt_mean_sd(d1.per_seed(b, m, "f1")))]
-            st = d1.stat(b, m)
-            if st is None:
-                cells += ["", "", "", "", ""]
-            else:
-                cells += [tex(fmt_delta(st["delta"])), tex(fmt_ci(st["ci_low"], st["ci_high"])), tex(fmt_p(st["p_holm"])),
-                          tex(st["same_sign"]), tex(st["verdict"])]
-            rows.append(cells)
-    head = (["Backbone"] if len(d1.backbones) > 1 else []) + [
-        "SR", "Rank-1 (\\%)", "Rank-5 (\\%)", "Macro F1 (\\%)", "$\\Delta$ (pp)", "95\\% CI (pp)", "$p$ (Holm)",
-        "Same sign", "Verdict"]
-    cols = ("l" if len(d1.backbones) > 1 else "") + "lrrrrlrrl"
-    cap = (f"D1: EarVN1.0, native low-resolution images, protocol matched, "
-           f"{tex(', '.join(backbone_display(b) for b in d1.backbones))}. Mean and sample standard deviation over "
-           f"seeds {', '.join(map(str, d1.seeds))}; $\\Delta$, CI and $p$ compare each SR model with bicubic on the same "
-           f"{d1.n_test:,} test images (paired bootstrap and sign-flip permutation test, Holm-corrected).")
-    return _table(cap, "tab:d1", cols, head, rows, star=True)
+    # Transposed (one column per SR model): eight metrics for five models needs nine columns as
+    # rows, which forces `table*` plus a shrunk font; as columns, it fits a single column at
+    # normal size (see tab_summary for the same reasoning).
+    b = d1.backbones[0]
+    methods = ["bicubic"] + d1.sr
+    best = max(d1.mean(b, m, "rank1") for m in methods)
+    headers = [tex(LABEL.get(m, m)) for m in methods]
+    columns = {}
+    for m in methods:
+        acc = tex(fmt_mean_sd(d1.per_seed(b, m, "rank1")))
+        if abs(d1.mean(b, m, "rank1") - best) < 1e-12:
+            acc = f"\\textbf{{{acc}}}"
+        st = d1.stat(b, m)
+        columns[m] = {
+            "Rank-1 (\\%)": acc, "Rank-5 (\\%)": tex(fmt_mean_sd(d1.per_seed(b, m, "rank5"))),
+            "Macro F1 (\\%)": tex(fmt_mean_sd(d1.per_seed(b, m, "f1"))),
+            "$\\Delta$ (pp)": tex(fmt_delta(st["delta"])) if st is not None else "",
+            "95\\% CI (pp)": tex(fmt_ci(st["ci_low"], st["ci_high"])) if st is not None else "",
+            "$p$ (Holm)": tex(fmt_p(st["p_holm"])) if st is not None else "",
+            "Same sign": tex(st["same_sign"]) if st is not None else "",
+            "Verdict": tex(st["verdict"]) if st is not None else "",
+        }
+    attrs = ["Rank-1 (\\%)", "Rank-5 (\\%)", "Macro F1 (\\%)", "$\\Delta$ (pp)", "95\\% CI (pp)", "$p$ (Holm)",
+             "Same sign", "Verdict"]
+    rows = [[attr] + [columns[m][attr] for m in methods] for attr in attrs]
+    cap = (f"D1: EarVN1.0, native low-resolution images, protocol matched, {tex(backbone_display(b))}, one column "
+           f"per SR model. Mean and sample standard deviation over seeds {', '.join(map(str, d1.seeds))}; $\\Delta$, "
+           f"CI and $p$ compare each SR model with bicubic on the same {d1.n_test:,} test images (paired bootstrap "
+           "and sign-flip permutation test, Holm-corrected).")
+    col_spec = "l" + ">{\\centering\\arraybackslash}p{1.85cm}" * len(methods)
+    return _table(cap, "tab:d1", col_spec, [""] + headers, rows, pos="H")
+
+
+def tab_d1_fixed_main(d1f: RunData) -> str:
+    # Same layout as tab_d1_main, for the fixed_recognizer protocol comparison (Appendix C): gives
+    # the per-model $\Delta$/CI/$p$/verdict that "What the protocol changes" (Section 3) summarizes
+    # as "every significant gain into significant harm", citing only the least-harmed model.
+    b = d1f.backbones[0]
+    methods = ["bicubic"] + d1f.sr
+    headers = [tex(LABEL.get(m, m)) for m in methods]
+    columns = {}
+    for m in methods:
+        st = d1f.stat(b, m)
+        columns[m] = {
+            "Rank-1 (\\%)": tex(fmt_mean_sd(d1f.per_seed(b, m, "rank1"))),
+            "$\\Delta$ (pp)": tex(fmt_delta(st["delta"])) if st is not None else "",
+            "95\\% CI (pp)": tex(fmt_ci(st["ci_low"], st["ci_high"])) if st is not None else "",
+            "$p$ (Holm)": tex(fmt_p(st["p_holm"])) if st is not None else "",
+            "Same sign": tex(st["same_sign"]) if st is not None else "",
+            "Verdict": tex(st["verdict"]) if st is not None else "",
+        }
+    attrs = ["Rank-1 (\\%)", "$\\Delta$ (pp)", "95\\% CI (pp)", "$p$ (Holm)", "Same sign", "Verdict"]
+    rows = [[attr] + [columns[m][attr] for m in methods] for attr in attrs]
+    cap = (f"D1 with the \\texttt{{fixed\\_recognizer}} protocol: EarVN1.0, native low-resolution images, "
+           f"{tex(backbone_display(b))}, one column per SR model. Mean and sample standard deviation over seeds "
+           f"{', '.join(map(str, d1f.seeds))}; $\\Delta$, CI and $p$ compare each SR model with bicubic on the same "
+           f"{d1f.n_test:,} test images (paired bootstrap and sign-flip permutation test, Holm-corrected). "
+           "Compare with Table~\\ref{tab:d1} (protocol matched).")
+    col_spec = "l" + ">{\\centering\\arraybackslash}p{1.85cm}" * len(methods)
+    return _table(cap, "tab:d1-fixed", col_spec, [""] + headers, rows, pos="H")
 
 
 def tab_d1_by_size(d1: RunData) -> str:
@@ -196,39 +229,69 @@ def tab_d1_by_size(d1: RunData) -> str:
 
 
 def tab_d2(d2: RunData) -> str:
+    # Transposed (one column per SR model), same reasoning as tab_d1_main. "degradation" is
+    # shortened to "deg." in the Trained-for row only, so the header row stays a single line.
     q = d2.quality.groupby("method")[["psnr", "ssim"]].mean()
     b = d2.backbones[0]
-    rows = []
-    for m in ["bicubic"] + d2.sr + ["hr"]:
+    methods = ["bicubic"] + d2.sr + ["hr"]
+    headers = [tex(LABEL.get(m, m)) for m in methods]
+    columns = {}
+    for m in methods:
         st = d2.stat(b, m)
         psnr = fmt_num(float(q.loc[m, "psnr"]), 2) if m in q.index else "--"
         ssim = fmt_num(float(q.loc[m, "ssim"]), 3) if m in q.index else "--"
-        rows.append([tex(LABEL.get(m, m)), tex(d2.trained_for(m)), psnr, ssim,
-                     tex(fmt_mean_sd(d2.per_seed(b, m, "rank1"))),
-                     tex(fmt_delta(st["delta"])) if st is not None else "", tex(st["verdict"]) if st is not None else ""])
-    return _table(f"D2: LFW (people with at least 20 images), synthetic $\\times${d2.cfg['scale']}, "
-                  f"{tex(backbone_display(b))}, seeds {', '.join(map(str, d2.seeds))}. PSNR and SSIM on the Y channel "
-                  "of the test images; Rank-1 in \\%.", "tab:d2", "llrrrrl",
-                  ["SR", "Trained for", "PSNR (dB)", "SSIM", "Rank-1 (\\%)", "$\\Delta$ (pp)", "Verdict"], rows)
+        columns[m] = {
+            "Trained for": tex(d2.trained_for(m).replace("degradation", "deg.")),
+            "PSNR (dB)": psnr, "SSIM": ssim, "Rank-1 (\\%)": tex(fmt_mean_sd(d2.per_seed(b, m, "rank1"))),
+            "$\\Delta$ (pp)": tex(fmt_delta(st["delta"])) if st is not None else "",
+            "Verdict": tex(st["verdict"]) if st is not None else "",
+        }
+    attrs = ["Trained for", "PSNR (dB)", "SSIM", "Rank-1 (\\%)", "$\\Delta$ (pp)", "Verdict"]
+    rows = [[attr] + [columns[m][attr] for m in methods] for attr in attrs]
+    cap = (f"D2: LFW (people with at least 20 images), synthetic $\\times${d2.cfg['scale']}, "
+           f"{tex(backbone_display(b))}, one column per SR model, seeds {', '.join(map(str, d2.seeds))}. PSNR and "
+           "SSIM on the Y channel of the test images; Rank-1 in \\%.")
+    col_spec = "l" + ">{\\centering\\arraybackslash}p{1.68cm}" * len(methods)
+    return _table(cap, "tab:d2", col_spec, [""] + headers, rows, pos="H")
+
+
+DEMO_NAMES_SHORT = {"d1": "D1", "d1_fixed": "D1 (fixed)", "d2": "D2", "d3": "D3"}
+SUMMARY_ATTRS = ["Dataset", "Mode", "Protocol", "Seeds", "Classes", "Test", "Best SR", "$\\Delta$ (pp)",
+                  "Verdict", "Hours"]
 
 
 def tab_summary(runs: dict[str, RunData]) -> str:
-    rows = []
+    # Transposed (one column per demo): with only four demos and ten attributes, this fits a
+    # single column at normal font size, unlike a row-per-demo table which needs the full page
+    # width and a shrunk font to hold eleven columns.
+    headers = []
+    columns = []
     for key, r in runs.items():
         for b in r.backbones:
             best = max(r.sr, key=lambda m, b=b: r.mean(b, m, "rank1")) if r.sr else None
             st = r.stat(b, best) if best else None
             ds = Path(str(r.cfg["dataset"])).name
-            rows.append([tex(DEMO_NAMES.get(key, key)), tex(ds), tex(r.cfg["mode"]), tex(r.cfg["protocol"]),
-                         str(len(r.seeds)), f"{r.n_classes:,}", f"{r.n_test:,}", tex(best or "n/a"),
-                         tex(fmt_delta(st["delta"])) if st is not None else "", tex(st["verdict"]) if st is not None else "",
-                         f"{r.hours:.1f}"])
-    return _table("The demonstrations: best SR model, its Rank-1 difference with bicubic and the verdict. The runs vary "
-                  "dataset, mode and protocol together, so they illustrate the workflow across domains rather than "
-                  "isolate one factor. Hours: wall-clock time of the whole run on the reference machine.",
-                  "tab:summary", "lllllrrlrlr",
-                  ["Demo", "Dataset", "Mode", "Protocol", "Seeds", "Classes", "Test", "Best SR", "$\\Delta$ (pp)",
-                   "Verdict", "Hours"], rows, star=True)
+            verdict = tex(st["verdict"]) if st is not None else ""
+            if st is not None and len(r.seeds) == 1:
+                verdict += " (1 seed)"
+            label = DEMO_NAMES_SHORT.get(key, key)
+            headers.append(tex(label) if len(r.backbones) == 1 else f"{tex(label)} ({tex(backbone_display(b))})")
+            columns.append({
+                "Dataset": tex(ds), "Mode": tex(r.cfg["mode"]), "Protocol": tex(r.cfg["protocol"]),
+                "Seeds": str(len(r.seeds)), "Classes": f"{r.n_classes:,}", "Test": f"{r.n_test:,}",
+                "Best SR": tex(best or "n/a"),
+                "$\\Delta$ (pp)": tex(fmt_delta(st["delta"])) if st is not None else "",
+                "Verdict": verdict, "Hours": f"{r.hours:.1f}",
+            })
+    rows = [[attr] + [col[attr] for col in columns] for attr in SUMMARY_ATTRS]
+    return _table("The demonstrations: best SR model, its Rank-1 difference with bicubic and the verdict, one column "
+                  "per demonstration. `D1 (fixed)' is D1 evaluated with the recognizer fixed across SR models rather "
+                  "than trained per model. The runs vary dataset, mode and protocol together, so they illustrate the "
+                  "workflow across domains rather than isolate one factor. A verdict marked `(1 seed)' comes from a "
+                  "single training run and has not been checked for agreement across independent seeds (Section 3). "
+                  "Hours: wall-clock time of the whole run on the reference machine.",
+                  "tab:summary", "l" + "l" * len(headers),
+                  [""] + headers, rows, pos="H")
 
 
 def tab_latency(run: RunData) -> str:
@@ -247,7 +310,7 @@ def tab_latency(run: RunData) -> str:
     return _table(f"CPU latency in ms (median / p95): batch 1, LR input {c['lr_size']} $\\times$ {c['lr_size']}, "
                   f"{c['threads']} threads, {tex(run.fp['environment']['cpu'])}, 10 warm-up and 100 timed runs. "
                   f"Recognizer alone: {rec}.", "tab:latency", "l" + "r" * (1 + len(run.backbones)),
-                  ["SR", "SR only"] + [f"SR + {tex(backbone_display(b))}" for b in run.backbones], rows)
+                  ["SR", "SR only"] + [f"SR + {tex(backbone_display(b))}" for b in run.backbones], rows, pos="H")
 
 
 def tab_validation(validation: Path) -> str:
@@ -360,6 +423,8 @@ def main() -> None:
             extra.update({"QualCorrected": f"{c:,}", "QualDegraded": f"{d:,}"})
         except SystemExit as err:
             print(f"Qualitative figure skipped: {err}")
+    if "d1_fixed" in runs:
+        (a.out / "tab_d1_fixed_main.tex").write_text(tab_d1_fixed_main(runs["d1_fixed"]))
     if "d2" in runs and runs["d2"].quality is not None:
         (a.out / "tab_d2_fidelity.tex").write_text(tab_d2(runs["d2"]))
         fig_d2_fidelity(runs["d2"], a.out / "fig_d2_fidelity.pdf")

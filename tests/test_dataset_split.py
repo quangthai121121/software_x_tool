@@ -1,4 +1,4 @@
-"""B1.1-B1.4, B1.11, B3.4: dataset format checks and the train/val/test split."""
+"""Dataset format checks and the train/val/test split."""
 
 import shutil
 

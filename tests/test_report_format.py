@@ -1,4 +1,4 @@
-"""Report formatting rules, answer sentences and comparison-panel selection (B1.16)."""
+"""Report formatting rules, answer sentences and comparison-panel selection."""
 
 import re
 import unicodedata

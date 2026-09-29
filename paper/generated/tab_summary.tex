@@ -1,18 +1,24 @@
-\begin{table*}[t]
+\begin{table}[H]
 \centering
 \footnotesize
-\caption{The demonstrations: best SR model, its Rank-1 difference with bicubic and the verdict. The runs vary dataset, mode and protocol together, so they illustrate the workflow across domains rather than isolate one factor. Hours: wall-clock time of the whole run on the reference machine.}
+\caption{The demonstrations: best SR model, its Rank-1 difference with bicubic and the verdict, one column per demonstration. `D1 (fixed)' is D1 evaluated with the recognizer fixed across SR models rather than trained per model. The runs vary dataset, mode and protocol together, so they illustrate the workflow across domains rather than isolate one factor. A verdict marked `(1 seed)' comes from a single training run and has not been checked for agreement across independent seeds (Section 3). Hours: wall-clock time of the whole run on the reference machine.}
 \label{tab:summary}
 \begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{lllllrrlrlr}
+\begin{tabular}{lllll}
 \toprule
-Demo & Dataset & Mode & Protocol & Seeds & Classes & Test & Best SR & $\Delta$ (pp) & Verdict & Hours \\
+ & D1 & D1 (fixed) & D2 & D3 \\
 \midrule
-D1 & earvn & native-lr & matched & 3 & 164 & 5,678 & realesrgan & +1.4 & significant gain & 13.8 \\
-D1, fixed recognizer & earvn & native-lr & fixed\_recognizer & 3 & 164 & 5,678 & span & $-$4.2 & significant harm & 0.1 \\
-D2 & lfw & synthetic & matched & 3 & 62 & 602 & swinir\_classical & +0.8 & no difference & 0.8 \\
-D3 & cub & synthetic & matched & 1 & 200 & 5,794 & span & +1.2 & significant gain & 4.0 \\
+Dataset & earvn & earvn & lfw & cub \\
+Mode & native-lr & native-lr & synthetic & synthetic \\
+Protocol & matched & fixed\_recognizer & matched & matched \\
+Seeds & 3 & 3 & 3 & 1 \\
+Classes & 164 & 164 & 62 & 200 \\
+Test & 5,678 & 5,678 & 602 & 5,794 \\
+Best SR & realesrgan & span & swinir\_classical & span \\
+$\Delta$ (pp) & +1.4 & $-$4.2 & +0.8 & +1.2 \\
+Verdict & significant gain & significant harm & no difference & significant gain (1 seed) \\
+Hours & 13.8 & 0.1 & 0.8 & 4.0 \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-\end{table*}
+\end{table}

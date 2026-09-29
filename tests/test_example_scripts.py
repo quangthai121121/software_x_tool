@@ -1,4 +1,4 @@
-"""Sample-data builders, dataset conversion scripts and make_sr_images.py (B5.7, scripts part)."""
+"""Sample-data builders, dataset conversion scripts and make_sr_images.py."""
 
 import subprocess
 import sys

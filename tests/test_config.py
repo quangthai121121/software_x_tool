@@ -1,4 +1,4 @@
-"""B1.10, B1.8 (marker detection), B5.6 (generated config and reference stay in sync)."""
+"""Marker detection, and the generated config and reference staying in sync."""
 
 from pathlib import Path
 

@@ -13,10 +13,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install ruff
+      - run: pip install "ruff>=0.4,<0.17"
       - run: ruff check .
-      - name: English-only text (B5.3)
-        run: python scripts/check_english.py
 
   test:
     needs: lint
@@ -31,12 +29,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+          cache: pip
       - name: Install (CPU PyTorch)
         run: |
           python -m pip install --upgrade pip
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
           pip install -e ".[dev]"
-      - name: Configuration docs are up to date (B5.6)
+      - name: Configuration docs are up to date
         run: |
           python scripts/make_config_docs.py
           git diff --exit-code docs/config_reference.md examples/configs/full_reference.yaml
@@ -45,7 +44,7 @@ jobs:
 
   examples:
     # Runs the sample configurations when the sample subsets are available in the cache
-    # (built once by a maintainer with scripts/make_examples.py, see C4 in the release checklist).
+    # (built once by a maintainer with scripts/make_examples.py).
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -63,7 +62,7 @@ jobs:
         run: |
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
           pip install -e .
-      - name: Quickstart and examples (B5.1, B5.7)
+      - name: Quickstart and examples
         if: steps.samples.outputs.cache-hit == 'true'
         run: |
           python examples/sr_models/train_tiny_espcn.py
@@ -71,4 +70,3 @@ jobs:
             sr4rec run examples/configs/$c.yaml --dry-run
             sr4rec run examples/configs/$c.yaml
           done
-          python scripts/check_english.py runs

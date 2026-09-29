@@ -5,7 +5,7 @@ Thank you for helping. Bug reports, documentation fixes and new validated models
 ## Development setup
 
 ```bash
-git clone https://github.com/OWNER/sr4rec.git
+git clone https://github.com/quangthai121121/sr4rec.git
 cd sr4rec
 pip install -e ".[dev]"
 pre-commit install
@@ -17,8 +17,6 @@ Before opening a pull request:
 
 - `ruff check .` and `pytest` pass;
 - `python scripts/make_config_docs.py` was run if you changed `src/sr4rec/config.py`;
-- `python scripts/check_english.py` passes (all code, comments, messages, documents and figures
-  are in English);
 - `CHANGELOG.md` describes user-visible changes.
 
 ## Rules that protect comparability
@@ -39,12 +37,11 @@ pull request with a small experiment.
 
 ## Adding a validated backbone
 
-The timm model trains with the fixed recipe on `pets_mini` and one paper dataset without changes,
+The timm model trains with the fixed recipe on `pets_mini` and one of the shipped demo datasets without changes,
 its CPU latency is measured, and its licence allows research use. Add it to
 `VALIDATED_BACKBONES` in `src/sr4rec/config.py`.
 
 ## Maintenance
 
 Issues are triaged at least monthly. Supported Python versions follow the scientific Python
-ecosystem (currently 3.10-3.12). Releases are tagged on GitHub, archived on Zenodo and published
-on PyPI.
+ecosystem (currently 3.10-3.12). Releases are tagged on GitHub and archived on Zenodo.
