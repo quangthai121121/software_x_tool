@@ -362,9 +362,14 @@ def fig_d2_fidelity(d2: RunData, out: Path) -> None:
     q = d2.quality.groupby("method")[["psnr", "ssim"]].mean()
     b = d2.backbones[0]
     markers = {"bicubic degradation": "o", "real-world degradation": "^", "n/a": "s", "unknown": "D"}
-    # A fixed (5, 3) offset for every label collides when two methods have close PSNR/SSIM/Rank-1
-    # (e.g. swinir_classical and span); give those two a separate vertical offset instead.
-    label_offset = {"swinir_classical": (5, 8), "span": (5, -10)}
+    # bicubic, swinir_realworld and realesrgan sit on a near-diagonal line (PSNR and SSIM both
+    # increase together with Rank-1 across the three), so a shared offset stacks their labels along
+    # that same diagonal; swinir_classical and span sit almost on top of each other on the x axis.
+    # Give every label its own offset, spread in a different direction, instead of one shared default.
+    label_offset = {
+        "bicubic": (8, 12), "realesrgan": (-5, -15), "swinir_realworld": (-38, 0),
+        "swinir_classical": (10, 10), "span": (10, -16),
+    }
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.9))
     for ax, col, xlabel in zip(axes, ("psnr", "ssim"), ("PSNR (dB, Y channel)", "SSIM (Y channel)"), strict=True):
         for i, m in enumerate(["bicubic"] + d2.sr):
@@ -373,8 +378,10 @@ def fig_d2_fidelity(d2: RunData, out: Path) -> None:
             kind = d2.trained_for(m)
             color = style.style_for(i)["color"]
             ax.errorbar(q.loc[m, col], acc, yerr=sd, marker=markers[kind], color=color, capsize=2, linestyle="none")
+            # Colour the label like its marker so it stays identifiable even where labels or error
+            # bars of different methods pass close to each other.
             ax.annotate(m, (q.loc[m, col], acc), textcoords="offset points",
-                        xytext=label_offset.get(m, (5, 3)), fontsize=6.5)
+                        xytext=label_offset[m], fontsize=6.5, color=color)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(f"Rank-1, {backbone_display(b)} (%)")
         ax.margins(x=0.25, y=0.15)
