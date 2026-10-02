@@ -92,7 +92,7 @@ class RunData:
         for s in self.fp["sr_models"]:
             if s["name"] == method and s["files"]:
                 f = s["files"][0]
-                info = lookup(f["sha256"], Path(f["path"]).name)
+                info = lookup(f["sha256"])
                 return info["trained_for"] if info else "unknown"
         return "unknown"
 
