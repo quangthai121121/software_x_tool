@@ -176,7 +176,7 @@ def tab_d1_main(d1: RunData) -> str:
            f"CI and $p$ compare each SR model with bicubic on the same {d1.n_test:,} test images (paired bootstrap "
            "and sign-flip permutation test, Holm-corrected).")
     col_spec = "l" + ">{\\centering\\arraybackslash}p{1.85cm}" * len(methods)
-    return _table(cap, "tab:d1", col_spec, [""] + headers, rows, pos="H")
+    return _table(cap, "tab:d1", col_spec, [""] + headers, rows)
 
 
 def tab_d1_fixed_main(d1f: RunData) -> str:
@@ -242,7 +242,8 @@ def tab_d2(d2: RunData) -> str:
         ssim = fmt_num(float(q.loc[m, "ssim"]), 3) if m in q.index else "--"
         columns[m] = {
             "Trained for": tex(d2.trained_for(m).replace("degradation", "deg.")),
-            "PSNR (dB)": psnr, "SSIM": ssim, "Rank-1 (\\%)": tex(fmt_mean_sd(d2.per_seed(b, m, "rank1"))),
+            "PSNR (dB)": psnr, "SSIM": ssim,
+            "Rank-1 (\\%)": tex(fmt_mean_sd(d2.per_seed(b, m, "rank1"), digits=2)),
             "$\\Delta$ (pp)": tex(fmt_delta(st["delta"])) if st is not None else "",
             "Verdict": tex(st["verdict"]) if st is not None else "",
         }
@@ -252,7 +253,7 @@ def tab_d2(d2: RunData) -> str:
            f"{tex(backbone_display(b))}, one column per SR model, seeds {', '.join(map(str, d2.seeds))}. PSNR and "
            "SSIM on the Y channel of the test images; Rank-1 in \\%.")
     col_spec = "l" + ">{\\centering\\arraybackslash}p{1.68cm}" * len(methods)
-    return _table(cap, "tab:d2", col_spec, [""] + headers, rows, pos="H")
+    return _table(cap, "tab:d2", col_spec, [""] + headers, rows)
 
 
 DEMO_NAMES_SHORT = {"d1": "D1", "d1_fixed": "D1 (fixed)", "d2": "D2", "d3": "D3"}
@@ -291,7 +292,7 @@ def tab_summary(runs: dict[str, RunData]) -> str:
                   "single training run and has not been checked for agreement across independent seeds (Section 3). "
                   "Hours: wall-clock time of the whole run on the reference machine.",
                   "tab:summary", "l" + "l" * len(headers),
-                  [""] + headers, rows, pos="H")
+                  [""] + headers, rows)
 
 
 def tab_latency(run: RunData) -> str:
@@ -310,7 +311,7 @@ def tab_latency(run: RunData) -> str:
     return _table(f"CPU latency in ms (median / p95): batch 1, LR input {c['lr_size']} $\\times$ {c['lr_size']}, "
                   f"{c['threads']} threads, {tex(run.fp['environment']['cpu'])}, 10 warm-up and 100 timed runs. "
                   f"Recognizer alone: {rec}.", "tab:latency", "l" + "r" * (1 + len(run.backbones)),
-                  ["SR", "SR only"] + [f"SR + {tex(backbone_display(b))}" for b in run.backbones], rows, pos="H")
+                  ["SR", "SR only"] + [f"SR + {tex(backbone_display(b))}" for b in run.backbones], rows)
 
 
 def tab_validation(validation: Path) -> str:
@@ -361,6 +362,9 @@ def fig_d2_fidelity(d2: RunData, out: Path) -> None:
     q = d2.quality.groupby("method")[["psnr", "ssim"]].mean()
     b = d2.backbones[0]
     markers = {"bicubic degradation": "o", "real-world degradation": "^", "n/a": "s", "unknown": "D"}
+    # A fixed (5, 3) offset for every label collides when two methods have close PSNR/SSIM/Rank-1
+    # (e.g. swinir_classical and span); give those two a separate vertical offset instead.
+    label_offset = {"swinir_classical": (5, 8), "span": (5, -10)}
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.9))
     for ax, col, xlabel in zip(axes, ("psnr", "ssim"), ("PSNR (dB, Y channel)", "SSIM (Y channel)"), strict=True):
         for i, m in enumerate(["bicubic"] + d2.sr):
@@ -369,7 +373,8 @@ def fig_d2_fidelity(d2: RunData, out: Path) -> None:
             kind = d2.trained_for(m)
             color = style.style_for(i)["color"]
             ax.errorbar(q.loc[m, col], acc, yerr=sd, marker=markers[kind], color=color, capsize=2, linestyle="none")
-            ax.annotate(m, (q.loc[m, col], acc), textcoords="offset points", xytext=(5, 3), fontsize=6.5)
+            ax.annotate(m, (q.loc[m, col], acc), textcoords="offset points",
+                        xytext=label_offset.get(m, (5, 3)), fontsize=6.5)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(f"Rank-1, {backbone_display(b)} (%)")
         ax.margins(x=0.25, y=0.15)

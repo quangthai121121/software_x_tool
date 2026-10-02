@@ -645,8 +645,8 @@ Bạn hỏi vì sao file này nói còn comment tiếng Việt — xác nhận m
   - Build lại PDF lần nữa, verify bằng `pdftotext` cả 3 câu sửa lần này đúng câu chữ, 23 trang
     không đổi, không lỗi mới.
 
-- [ ] **Đối chiếu số liệu văn xuôi ↔ bảng biểu — phát hiện 1 claim rộng hơn bảng, đang chờ dữ liệu**
-  thật để hoàn tất (2026-09-29/30)
+- [x] **Đối chiếu số liệu văn xuôi ↔ bảng biểu — phát hiện 1 claim rộng hơn bảng, đã lấy dữ liệu**
+  **thật để hoàn tất** ✅ XONG (2026-09-30)
   Đối chiếu tay từng con số trong Motivation→Conclusions với Table 1-6, C.1-C.2 và `macros.tex`.
   **Toàn bộ số liệu khác đều khớp chính xác** (Rank-1/Δ/CI/p/same-sign D1, PSNR/SSIM/Δ D2, verdict
   theo size bin, latency ranges, số ảnh/lớp/seed/giờ chạy, tổng 18.7 GPU-hours = 13.8+0.1+0.8+4.0
@@ -677,9 +677,290 @@ Bạn hỏi vì sao file này nói còn comment tiếng Việt — xác nhận m
       per-model breakdown..." (do chưa có `generated/tab_d1_fixed_main.tex` thật), tham chiếu
       `\ref{tab:d1-fixed}` resolve đúng (không lỗi "undefined"), 23 trang không đổi.
     - `ruff check` + `py_compile` trên `scripts/make_paper_assets.py` sạch.
-  - **Việc còn lại (người dùng)**: lấy folder chạy `d1_earvn_fixed` có đủ `stats.csv` +
-    `predictions.csv` từ máy GPU (hoặc chạy lại `sr4rec reproduce d1_earvn_fixed` nếu chưa có), rồi
-    chạy `python scripts/make_paper_assets.py --d1-fixed <path> ...` (giữ nguyên các cờ `--d1 --d2
-    --d3` khác nếu muốn sinh lại đồng thời) để tạo `generated/tab_d1_fixed_main.tex` thật. Sau đó
-    quay lại đây để cập nhật câu văn "What the protocol changes" với số liệu chính xác (bao gồm
-    verdict thật của cả 4 model) nếu cần.
+  - **Đã hoàn tất trên labai217** (2026-09-30): `sr4rec reproduce d1_earvn_fixed` (chạy full, 1.5h)
+    rồi `python scripts/make_paper_assets.py --d1-fixed runs/reproduce_d1_earvn_fixed_3` — xác
+    nhận CLI tự in ra đúng: **cả 4 model đều "reduced Rank-1 accuracy significantly"**, SPAN ít bị
+    hại nhất (−4.2pp), khớp đúng số đã đóng băng từ trước (77.91/53.27/72.52/53.63/73.69).
+    - Sự cố phụ đã xử lý: (1) venv trên labai217 mất import `sr4rec` sau `git pull` — do editable
+      install cũ trỏ sai thư mục, sửa bằng `pip install -e .` lại; (2) `git pull` bị chặn bởi 2 file
+      chưa track/đã sửa cục bộ (`quickstart.yaml` sửa dở, `requirements.lock` chưa track) — đã diff
+      xác nhận an toàn (dữ liệu giống hệt, chỉ khác format/đã có sẵn trên remote) trước khi
+      `git checkout`/`mv` rồi mới pull, đúng kỷ luật diff-trước-khi-discard đã thiết lập từ trước;
+      (3) chạy `make_paper_assets.py` chỉ với `--d1-fixed` (không kèm `--d1 --d2 --d3`) làm
+      `macros.tex` bị ghi đè mất hết macro D1/D2/D3/Qual — kiểm tra bằng `grep DONEFIXED main.tex`
+      xác nhận `main.tex` **không hề dùng** macro D1-fixed nào, nên chỉ cần bỏ qua `macros.tex` bị
+      ghi đè (không commit), chỉ lấy đúng `tab_d1_fixed_main.tex` — không cần chạy lại toàn bộ.
+    - Nhận nội dung `tab_d1_fixed_main.tex` thật qua chat (dán trực tiếp, không cần git), verify
+      khớp tuyệt đối với `expected/d1_earvn_fixed.yaml`: cả 4 Δ đúng bằng Rank-1 trừ bicubic, cả 4
+      CI không chứa 0, $p<0.001$, same sign 3/3, verdict "significant harm" cho cả 4 — xác nhận
+      claim "every...harm" trong Abstract + §3 giờ có bằng chứng thật trong bài (Table C.3).
+    - Cập nhật đoạn "What the protocol changes": thêm số cụ thể "$-4.2$\,pp cho SPAN (ít bị hại
+      nhất) đến $-24.6$\,pp cho Real-ESRGAN (tệ nhất), cả 4 model Holm $p<0.001$", dẫn
+      `Table~\ref{tab:d1-fixed}`.
+    - Build lại PDF: 23→24 trang (Table C.3 thật thay placeholder), verify bằng `pdftotext` số
+      liệu mới đúng, quét lại toàn bộ heading+caption theo trang xác nhận không float nào trôi
+      sang sai section (kể cả sau khi thêm 1 trang mới). Không lỗi LaTeX mới.
+    - Không sync sang `sr4rec` (paper/ ngoài phạm vi release). Không cần chạy lại `pytest` (không
+      đổi code core, chỉ thêm 1 hàm sinh bảng cho script paper-only).
+
+- [x] **Đối chiếu toàn bộ góp ý `gop_y_sr4rec_softwarex.md` (Linh Do Nhat, 23 mục A1-A6/B1-B10,**
+  **kiểm tại tag v0.1.1 28/09) với trạng thái thật repo `sr4rec` tag v0.1.2 + `paper/main.tex`**
+  ✅ XONG (2026-09-30)
+  Kiểm bằng công cụ đọc-only thật, không đoán từ trí nhớ: `git rev-parse v0.1.2^{commit}` xác
+  nhận bản clone local `sr4rec` khớp tuyệt đối HEAD/`origin/main`; `curl` sống kiểm DOI/PyPI;
+  `gh run list` kiểm workflow `Release`; grep/Read trực tiếp từng file được góp ý trích dẫn.
+  **14/16 mục kiểm được đã đúng ("Đã sửa"), 1 mục hỏi lại người dùng (bỏ qua có chủ đích), chỉ
+  2 mục thật sự còn sót và đã sửa ngay trong lượt này:**
+  - ✅ A1 (PyPI install lỗi): xử lý bằng cách bỏ hẳn PyPI, cài `pip install -e .` từ repo clone
+    (README + paper khớp nhau). `gh run list`: `Release` workflow trên commit v0.1.2 = success.
+  - ✅ A2 (quickstart reproduce lỗi in làm minh hoạ): `quickstart.yaml` đã `frozen: true` với số
+    thật; Appendix B transcript kết PASS.
+  - ⚠️→✅ **A3 (3 chỗ ghi 3 version)**: C1/C2/pyproject/CITATION.cff/codemeta/.zenodo.json/
+    reference_environment.md đều đã = 0.1.2 từ trước; chỉ sót **Appendix B transcript in
+    `SR4Rec 0.1.0.dev0`** (dòng 664, 671) — đã sửa thành `SR4Rec 0.1.2` (xác nhận đúng format
+    banner CLI thật qua `src/sr4rec/pipeline.py:554`).
+  - ✅ A4 (reference_environment.md placeholder + tiếng Việt): đã điền đủ, không còn khối tiếng
+    Việt (grep non-ASCII toàn repo chỉ khớp ký hiệu mũi tên/tam giác, không phải tiếng Việt).
+  - ✅ A5 (CITATION.cff placeholder + tên sai): DOI concept đúng, tên Vinh tách đúng, ORCID đủ.
+  - ✅ A6 (DOI chưa resolve): kiểm sống `curl` DOI mới (zenodo.23041108) → HTTP 302, resolve OK.
+  - ⚠️→✅ **B1 (quy tắc verdict thiếu độ nhạy ngưỡng)**: 3/4 ý đã có sẵn (quy tắc tường minh,
+    "Same sign" không phải điều kiện, cảnh báo D3 một seed); **thêm câu thứ 4** vào §2.2: "At the
+    stricter $\alpha = 0.01$, every D1 verdict is unchanged, since all four Holm $p$ values are
+    already below it." (tính từ $p$ đã in sẵn trong Bảng 3: 0.0018/$<$0.001/0.0044/0.0044, không
+    cần chạy lại gì).
+  - ✅ B2 (D3 "significant gain" không cảnh báo): Bảng 5 đã ghi "(1 seed)" + caption giải thích.
+  - ✅ B3 (chữ "therefore" nối sai ở D2): đã viết lại, mạch logic đi qua D1.
+  - ✅ B4 (dung sai rộng hơn hiệu ứng): đã có câu phân biệt "tolerances say whether the software
+    reproduces its own numbers, not whether an SR model's effect... is real".
+  - ✅ B5 (dependency chỉ chặn dưới): `requirements.lock` có thật, `ruff>=0.4,<0.17` đã chặn trên.
+  - ⛔ **B6 (thiếu bảng S1-S8)**: hỏi người dùng — tiền đề gốc "phát hành qua PyPI" không còn
+    đúng sau khi A1 bỏ hẳn PyPI, không có bản "executable" riêng để khai → **người dùng chọn
+    không thêm**, giữ nguyên chỉ có bảng C1-C8.
+  - ✅ B7 (nhãn C2 không nguyên văn template): đã đúng "Permanent GitHub link...".
+  - ✅ B8 (Impact thiếu ý phổ biến + backbone): có đủ 3 câu hỏi mở; Limitations đã disclose rõ
+    chỉ báo cáo ResNet-18.
+  - ✅ B9 (abstract dài): đếm lại 134 từ (từ 177), gần mức EmbedKD (120)/bài mẫu (105).
+  - ✅ B10 (D1 dùng dataset đồng tác giả): đã có nửa câu disclosure "published by a co-author".
+  - Nhóm C (đã làm tốt theo góp ý): không kiểm lại, không có thay đổi nào trong phiên trước làm
+    hỏng các điểm này.
+  - Build lại PDF sau 2 chỗ sửa: 24 trang không đổi, không lỗi LaTeX mới. Verify bằng
+    `pdftotext`: không còn `0.1.0.dev0`/`development version` nào trong bài; câu độ nhạy ngưỡng
+    lên đúng chỗ, đúng nội dung.
+  - Không sync sang `sr4rec` (paper/ ngoài phạm vi release). Không cần chạy lại `pytest`/`ruff`
+    (chỉ đổi 2 chuỗi + 1 câu văn LaTeX, không đổi code).
+
+- [x] **Dọn sạch comment/ghi chú nội bộ + hạ tầng `\todo`/`\pending` khỏi `main.tex` (bản đã**
+  **hoàn thiện, chuẩn bị gửi nhà xuất bản)** ✅ XONG (2026-09-30)
+  Người dùng yêu cầu rà lại `main.tex` tìm dấu hiệu nội bộ/AI trước khi coi là sẵn sàng gửi nhà
+  xuất bản. Rà bằng grep toàn bộ dòng `%...`, không có dấu vết Claude/ChatGPT/AI hay rò rỉ đường
+  dẫn máy nội bộ (`software_x_tool`/`labai217`/`/root/...`) — sạch. Phát hiện 1 nhóm comment thật
+  sự lộ quy trình soạn thảo nội bộ:
+  - Khối đầu file: tự gọi bài là "(draft)", ghi chú build, câu "nothing is typed by hand", "Word
+    budget per section is given in comments".
+  - `% Draft helpers: remove \todo items before submission...` — tự nhắc rồi chính nó phải bị xoá.
+  - **`%% 150-200 words. Write last (plan D5.2).`** — tham chiếu tới 1 tài liệu kế hoạch nội bộ
+    kiểu mã ticket, cùng loại `B5.3`/`B1.9` đã bị gỡ khỏi repo `sr4rec` ở phiên trước.
+  - 7 dòng `%% ---... N. TênMục (ngân sách từ)` đánh dấu ranh giới mỗi section kèm ngân sách từ
+    tự đặt (`Motivation (750-850 words)`, `Software (1100-1200 words)`, v.v.) + 1 dòng tương tự
+    cho "Declarations"/"Appendices" không kèm ngân sách.
+  - 2 dòng toggle nội bộ đã comment (`% \usepackage{lineno}`, `% \linenumbers`).
+  Theo yêu cầu "xoá hết vì bản đã hoàn thiện", đã xoá **toàn bộ** các dòng trên (không chỉ ẩn),
+  đồng thời dọn luôn hạ tầng `\todo`/`\pending`/`\genfig` (macro không còn dùng đến vì mọi file
+  `generated/*.tex` đã có dữ liệu thật, không còn khả năng "thiếu file" nữa):
+  - Xoá định nghĩa `\todo`, `\pending`, `\genfig` (macro thứ 2 vốn không được gọi ở đâu cả — dead
+    code từ đầu).
+  - Đơn giản hoá `\generated` từ dạng có fallback đỏ "Pending: ..." xuống `\input{generated/#1}`
+    thẳng — giữ nguyên chữ ký 3 tham số nên **không cần sửa 7 chỗ gọi** `\generated{...}{...}{...}`
+    trong thân bài.
+  - Đơn giản hoá dòng nạp `generated/macros.tex` từ `\IfFileExists{...}{...}{}` xuống `\input{...}`
+    thẳng (không cần fallback rỗng nữa).
+  - Xoá khối `\providecommand{\DONE...}{\todo{n}}` (7 dòng) — vô hại từ trước (macro thật đã ghi
+    đè) nhưng là hạ tầng "phòng khi thiếu file" không còn cần khi bài đã chốt.
+  - **Giữ nguyên** `\providecommand{\FloatBarrier}{\clearpage}` (dòng 8) — đây là fallback kỹ
+    thuật chuẩn khi package `placeins.sty` không có sẵn trên máy build, không phải "todo" nội
+    dung, thuộc loại thực hành LaTeX chuyên nghiệp bình thường, không đụng.
+  - Build lại PDF: 24 trang không đổi, không lỗi LaTeX mới. `pdftotext` xác nhận **không còn chữ
+    "TODO"/"Pending" nào** trong bản PDF cuối (kể cả trường hợp fallback lỡ kích hoạt).
+  - Không sync sang `sr4rec` (paper/ ngoài phạm vi release). Không cần chạy lại `pytest`/`ruff`
+    (chỉ đổi LaTeX, không đổi code Python).
+
+- [x] **Tối ưu khoảng trắng do ép `[H]` quá tay ở Section 3 (trang 9-14)** ✅ XONG (2026-09-30)
+  Người dùng chỉ ra trang 11-12 trống gần nửa trang, thứ tự đoạn văn/bảng/hình chưa hợp lý. Xác
+  nhận đúng nguyên nhân: lượt sửa "float trôi section" trước đó ép quá nhiều bảng/hình liên tiếp
+  về `[H]` (đúng vị trí tuyệt đối, không co giãn) — hễ 1 float không đủ chỗ trên trang hiện tại là
+  nhảy hẳn sang trang sau, để lại khoảng trắng lớn phía trên (đúng đánh đổi đã ghi chú trước "có
+  thể để lại khoảng trắng nếu không đủ chỗ", nay xảy ra thật).
+  - Trả về `[t]`/`[htbp]` (linh hoạt) cho: Figure 1 (architecture), Figure 4 (qualitative), và 4
+    bảng sinh tự động Table 3/4/5/6 (`tab_d1_main`, `tab_d2_fidelity`, `tab_summary`,
+    `tab_latency`) — sửa cả ở `scripts/make_paper_assets.py` (bỏ `pos="H"`) lẫn hand-patch 4 file
+    `generated/*.tex` hiện có cho khớp.
+    Bảng phụ lục C.1/C.2/C.3 (`tab_validation`, `tab_d1_by_size`, `tab_d1_fixed_main`) **giữ
+    nguyên `[H]`** — không có bằng chứng lặp lại vấn đề ở đó, không đụng.
+  - Thay vì ép từng float, chỉ chèn đúng 2 lệnh `\FloatBarrier` tại 2 ranh giới từng bị trôi
+    (ngay trước `\subsection{Software functionalities}` và ngay trước `\section{Impact}`) — vẫn
+    đảm bảo không trôi section (verify lại bằng đúng script quét heading+caption theo trang như
+    các lần trước), nhưng cho LaTeX tự đóng gói khít nội dung *bên trong* mỗi ranh giới thay vì cấm
+    hoàn toàn.
+  - Build lại PDF (24 trang, không đổi), quét lại section/float: thứ tự vẫn đúng (Table 5+6 giờ
+    nằm chung 1 trang trước "4. Impact", không tách rời như trước). Render ảnh so sánh trực quan
+    nhiều trang: trang 9/10/11 giờ đặc kín chữ, không còn khoảng trắng lớn.
+  - Còn sót 1 khoảng trắng ở cuối trang 12 (trước Figure 4) — không phải lỗi sắp xếp, do Figure 4
+    cao gần hết trang (`0.78\textheight`, 4 hàng ảnh minh hoạ) nên không thể nhét vừa phần trang
+    còn lại; đã báo người dùng, chưa quyết định có thu nhỏ figure hay để nguyên (giới hạn tự
+    nhiên, không phải bug).
+  - Không sync sang `sr4rec` (paper/ ngoài phạm vi release). `ruff check` + `py_compile` trên
+    `scripts/make_paper_assets.py` sạch. Không cần chạy lại `pytest`.
+
+- [ ] **Đợt góp ý mới (4 mục) cho `paper/main.tex`** — 2/4 đã xong, 1 đang chờ dữ liệu thật, 1
+  không cần sửa (2026-10-01)
+  - ✅ **Mục 2 (requirements.lock không được nhắc)**: C6 (bảng metadata) chỉ ghi "dependencies in
+    `pyproject.toml`", không nhắc `requirements.lock` dù file này có thật (87 gói ghim). Thêm câu
+    theo đúng mẫu bài EmbedKD đã đăng ("The exact versions, operating system and driver that
+    produced the published results are pinned in...") trỏ đúng `requirements.lock` +
+    `docs/reference_environment.md` (tên file thật của SR4Rec, gạch dưới chứ không gạch ngang như
+    bản EmbedKD).
+  - ✅ **Mục 3 (câu "reference environment notes" không có đường dẫn)**: đoạn Reproduction, thêm
+    `(\texttt{docs/reference\_environment.md})` ngay sau cụm đó.
+  - ✅ **Mục 4 (dòng Reproducible Capsule trong bảng metadata)**: đã hỏi người dùng — **giữ nguyên
+    C1-C8**, không thêm lại. Lý do: khớp tiền lệ bài EmbedKD thật đã đăng (cũng chỉ C1-C8); DOI
+    vẫn còn đủ ở Data availability.
+  - Build lại PDF, verify bằng `pdftotext`: cả 2 câu lên đúng, 24 trang không đổi, không lỗi mới.
+  - ⏳ **Mục 1 (Appendix B transcript có version "0.1.2" nhưng tên thư mục run `2026-09-24`, sớm
+    hơn ngày thật tạo tag v0.1.2 29/09)**: lỗi nội tại do sửa tay chuỗi version ở phiên trước mà
+    không chạy lại thật. Khối `reproduce quickstart` bên dưới không bị lỗi này (tên thư mục cố
+    định, không có ngày). Quyết định: không vá tay nữa, phải chạy lại thật toàn bộ trình tự `init`
+    → `run --dry-run` → `run` → `reproduce quickstart` trên labai217 (đã cài v0.1.2), thay nguyên
+    listing Appendix B bằng output thật mới. **Đang chờ người dùng chạy và gửi lại output.**
+  - Không sync sang `sr4rec` (paper/ ngoài phạm vi release). Không cần chạy lại `pytest`/`ruff`.
+
+- [x] **Phát hiện + sửa tận gốc bug `__version__` gõ cứng, cắt tag `v0.1.3`, cập nhật bài báo**
+  ✅ XONG phần code+tag+bài báo, ⏳ còn chờ Appendix B thật (2026-10-01)
+  Khi chạy thật trình tự Appendix B trên labai217 (để lấy transcript thật thay bản sửa tay — mục 1
+  đợt góp ý trước), phát hiện CLI vẫn in `SR4Rec 0.1.0.dev0` dù `pyproject.toml` ghi `0.1.2`. Lần
+  theo mã nguồn: `src/sr4rec/__init__.py` dòng 8 có `__version__ = "0.1.0.dev0"` **gõ cứng, tách
+  biệt hoàn toàn khỏi `pyproject.toml`** — đây mới là chuỗi thật được in ra mọi nơi (`--version`,
+  log mỗi lần chạy, `fingerprint.yaml`, `report.md`, header file cấu hình sinh ra). Bug có **cả
+  trong bản `sr4rec` công khai, ở đúng tag `v0.1.2` đã có DOI Zenodo** — ai clone đúng tag đó chạy
+  lệnh cũng thấy sai. Vì tag đã có DOI (immutable), không thể sửa lại — quyết định **Hướng A**: sửa
+  tận gốc rồi cắt tag mới `v0.1.3`.
+  - Sửa `__version__` ở `src/sr4rec/__init__.py` (lỗi thật) + bump số hiệu đồng bộ ở
+    `pyproject.toml`, `CITATION.cff`, `codemeta.json`, ở **cả 2 repo** (`software_x_tool` nguồn
+    gốc, rồi đồng bộ tay sang `sr4rec`).
+  - **Theo yêu cầu người dùng, mọi thao tác git/tag/release đều do người dùng tự tay làm** (tôi chỉ
+    sửa file + đưa lệnh, không tự commit/push/tag/release).
+  - CI fail ở lần push đầu (`Fix hardcoded version string; bump to 0.1.3`) — lý do thật: CI có bước
+    chạy `python scripts/make_config_docs.py` rồi kiểm diff; vì `examples/configs/full_reference.yaml`
+    là file sinh tự động có in version trong header, version đổi nên diff xuất hiện, file cũ chưa
+    cập nhật. Xác nhận đúng cơ chế bằng cách tự chạy script đó thật (dùng `PYTHONPATH=src` trên Mac,
+    không cần cài full package — `sr4rec/config_docs.py` chỉ cần `pydantic`/`pyyaml`, đã có sẵn),
+    đúng 1 dòng đổi (`docs/config_reference.md` không đổi gì vì không in version). Đồng bộ đúng 1
+    dòng đó sang `sr4rec`, verify `diff` 2 repo khớp tuyệt đối. Commit thứ 2
+    (`Regenerate full_reference.yaml for v0.1.3`) → CI xanh.
+  - Người dùng tự tag `v0.1.3`, publish Release (soạn sẵn note Fixed/ngắn gọn giúp người dùng dùng
+    `gh release create` interactive, hướng dẫn từng bước UI). Zenodo tự archive, DOI mới:
+    `10.5281/zenodo.23078036` (xác nhận sống qua `curl`, HTTP 302).
+  - Cập nhật đúng 3 chỗ trong `paper/main.tex`: C1 (`v0.1.2`→`v0.1.3`), C2 (link
+    `tree/v0.1.2`→`tree/v0.1.3`), Data availability (DOI `zenodo.23041108`→`zenodo.23078036`). Build
+    lại PDF, verify bằng `pdftotext`: cả 3 đúng, không còn `v0.1.2`/DOI cũ, 24 trang không đổi.
+  - ⏳ **Còn lại**: người dùng cần `git pull` + `pip install -e .` lại trên labai217 (nhận
+    `__version__` đã sửa đúng), xác nhận `sr4rec --version` in đúng "SR4Rec 0.1.3", rồi chạy lại
+    toàn bộ trình tự Appendix B thật, gửi output — tôi sẽ thay nguyên listing Appendix B (cắt bỏ
+    tiền tố path tuyệt đối `/root/ThaiLe/...` về dạng tương đối) + build lại PDF lần cuối.
+  - Không chạy lại `pytest` (không đổi logic code, chỉ version string + file sinh tự động); đã tự
+    verify bằng cách chạy trực tiếp generator script, không cần mock.
+  - ✅ **Hoàn tất (2026-10-01)**: người dùng `git pull` + `pip install -e .` lại trên labai217,
+    `sr4rec --version` xác nhận đúng "SR4Rec 0.1.3", rồi chạy lại toàn bộ trình tự Appendix B thật
+    (`init` → sửa `[CHECK]` → `run --dry-run` ×2 → `run` → `reproduce quickstart`). Output thật
+    cho thấy: version in đúng "0.1.3" ở cả 2 lần chạy, tên thư mục run có ngày `2026-10-01` (hợp lý,
+    sau ngày tạo tag v0.1.3), không còn nghịch lý ngày-tháng như bản cũ.
+  - Đã thay nguyên khối `\begin{lstlisting}...\end{lstlisting}` trong Appendix B bằng output thật
+    mới, với 2 điều chỉnh trình bày (đã báo người dùng trước khi làm):
+    1. Cắt tiền tố path tuyệt đối `/root/ThaiLe/new_exprerient/software_x_tool/` về dạng tương đối
+       (không lộ username/thư mục nội bộ server, khớp phong cách bản gốc).
+    2. Bỏ 1 dòng cảnh báo `Warning: You are sending unauthenticated requests to the HF Hub...` —
+       noise từ thư viện ngoài (huggingface_hub), không liên quan nội dung minh hoạ, không phải số
+       liệu/kết quả của SR4Rec.
+    Giữ nguyên tên thư mục `reproduce_quickstart_3` (số `_3` do máy đã chạy demo này vài lần trước
+    trong phiên debug — output thật, không sửa cho "đẹp").
+    Đoạn `reproduce quickstart` lần này không còn in các dòng "Downsampling.../SR bicubic.../SR
+    tiny_espcn..." như bản cũ — vì SR outputs đã được cache từ lệnh `run` chạy ngay trước đó (đúng
+    cơ chế cache theo content-hash đã mô tả trong Section 2 của bài, không phải thiếu sót).
+  - Build lại PDF: 24→23 trang (giảm 1 trang vì transcript ngắn hơn, hợp lý). `pdftotext` xác nhận
+    sạch hoàn toàn: không còn `0.1.0.dev0`, không còn `0.1.2`, không còn path `/root/ThaiLe/...`,
+    không còn dòng HF Hub, ở bất kỳ đâu trong bài.
+  - **Toàn bộ 2 đợt góp ý (gop_y_sr4rec_softwarex.md + đợt rà soát tiếp theo) giờ đã xử lý xong
+    100%.**
+
+- [x] **Rà layout lần cuối: chữ lòi lề phải (trang 12) + Listing 1 bị cắt ngang trang (trang 7-8)**
+  ✅ XONG (2026-10-01)
+  Người dùng tự đọc PDF phát hiện 2 lỗi trình bày:
+  - Trang 12: `\texttt{docs/reference\_environment.md}` (thêm ở đợt góp ý trước, đoạn Reproduction)
+    là 1 chuỗi monospace dài không có điểm ngắt dòng, tràn ra ngoài lề phải trang. Sửa bằng cách
+    chèn `\allowbreak` sau dấu gạch dưới (`docs/reference\_\allowbreak{}environment.md`), đúng kỹ
+    thuật đã dùng trong các bảng trước đó (`tex()` helper trong `make_paper_assets.py` cũng tự làm
+    vậy cho tên model dài) — giờ ngắt gọn gàng thành 2 dòng, không tràn lề.
+  - Trang 7-8: Listing 1 (ví dụ thêm SR model) bị tách đôi — caption + viền trên của khung code nằm
+    lẻ loi ở cuối trang 7, phần thân code nhảy sang trang 8, nhìn rời rạc/gãy mạch. Thêm `\newpage`
+    ngay trước `\begin{lstlisting}` để cả caption + khung code cùng sang trang 8 trọn vẹn.
+  - Build lại PDF: vẫn 23 trang (không tăng, vì chỗ trống cuối trang 7 trước đó vốn đã lãng phí).
+    Render ảnh trực tiếp từng trang xác nhận cả 2 chỗ đã đúng — Listing 1 liền mạch trên trang 8,
+    dòng path ở trang 12 ngắt dòng gọn, không còn tràn lề.
+  - Không sync sang `sr4rec` (paper/ ngoài phạm vi release). Không cần chạy lại `pytest`/`ruff`.
+
+- [~] **Đợt góp ý thứ 3 (rà soát sau 2 đợt trước) + rà Guide for Authors SoftwareX** — ĐANG LÀM
+  (2026-10-02). Kế hoạch đầy đủ: `~/.claude/plans/b-n-l-chuy-n-gia-synthetic-peacock.md`.
+  Đã xong A1, A2, A3, A4, A8 (còn A5, A6, A7, A9, B1, B2):
+  - **A1 (Abstract)**: câu "training on bicubic images only reversed every verdict" sai (chỉ 2/4
+    model đổi dấu dưới `fixed_recognizer`, 2 model còn lại vốn đã harm thì chỉ harm nặng hơn, không
+    "đảo dấu"). Sửa thành "...every SR model significantly harmed Rank-1" — đúng với Table
+    `tab:d1-fixed` (cả 4 model đều `significant harm` dưới `fixed_recognizer`).
+  - **A2 (Impact, đoạn 1)**: cùng lỗi logic ("...reversed when..."), sửa tương tự A1.
+  - **A3 (Data availability)**: câu nói Zenodo chứa "recognizer checkpoints" sai — xác nhận qua
+    Zenodo REST API record chỉ 195KB/1 file, không thể chứa checkpoint. Tách rõ: code+expected
+    results ở Zenodo DOI; checkpoint thật phân phối qua GitHub Release assets, tải bằng
+    `scripts/fetch_checkpoints.py` (đã có sẵn, xác nhận tồn tại trong `sr4rec` repo).
+  - **A4 (README "one command")**: dòng 9 tự mâu thuẫn với dòng 50 "Three commands only" — sửa
+    "one command" → "three commands". Sửa ở CẢ 2 repo: `software_x_tool/README.md` (nguồn thật) và
+    `sr4rec/README.md` (bản release) — phát hiện cùng lỗi ở cả 2 nơi khi kiểm tra.
+  - **A8 (references.bib)**: thêm `doi` cho 9 entry đã tra Crossref thật (liang2021swinir,
+    wang2021realesrgan, wang2004ssim, deng2009imagenet, he2016resnet, howard2019mobilenetv3,
+    liu2022convnext, parkhi2012pets, zhang2021bsrgan), kèm sửa 2 chỗ số trang lệch nhẹ
+    (liu2022convnext: 11976--11986→11966--11976; zhang2021bsrgan: 4791--4800→4771--4780).
+    paszke2019pytorch (NeurIPS) xác nhận thật sự không có DOI, không thêm.
+  - Build lại PDF sạch, không lỗi mới. `pdftotext` xác nhận cả 3 câu sửa (A1/A2/A3) hiển thị đúng
+    trong PDF cuối.
+  - **Tự phát hiện thêm qua rà Guide for Authors SoftwareX (sciencedirect.com, WebSearch)**:
+    Highlights là 1 file riêng bắt buộc (3-5 bullet, ≤85 ký tự/bullet, nộp cùng bản thảo, không
+    nhúng vào PDF) — chưa có trong repo, lên kế hoạch A9 soạn nội dung. Đã hỏi người dùng về
+    "Declaration of Generative AI and AI-assisted technologies" (chính sách Elsevier) — người dùng
+    quyết định KHÔNG thêm.
+  - **Table 4 Δ vs phép trừ tay (0.7 vs 0.8)**: người dùng hỏi đúng — Δ tính từ dữ liệu paired
+    chưa làm tròn (`stats.py`, cùng số dùng để ra Verdict), không phải phép trừ 2 số Rank-1 đã làm
+    tròn hiển thị. Đề xuất ban đầu "sửa Δ thành 0.7 cho khớp" bị từ chối đúng — sẽ là làm sai số
+    liệu nghiên cứu thật (Δ không còn khớp với CI/p-value/Verdict phía sau). Quyết định cuối: KHÔNG
+    đổi Δ, tăng Rank-1 lên 2 chữ số thập phân ở Table 4 (`fmt_mean_sd(..., digits=2)`, hàm đã có
+    sẵn tham số này) để phép trừ tay khớp gần hơn, không cần thêm chú thích caption.
+  - **A5 (Funding section)**: XONG. Elsevier bắt buộc, bài chưa có — thêm `\section*{Funding}`
+    giữa "Declaration of competing interest" và "Data availability" với câu chuẩn ("This research
+    did not receive any specific grant..."). Build lại PDF sạch, `pdftotext` xác nhận đúng vị trí.
+  - **A9 (Highlights)**: XONG. Tạo `paper/highlights.txt` (5 bullet, 72-82 ký tự, đều ≤85) — file
+    độc lập, KHÔNG `\input` vào `main.tex`, không ảnh hưởng PDF/DOI. Chỉ để copy sang hệ thống nộp
+    bài (Editorial Manager) lúc submit; không liên quan tới Zenodo/GitHub release nên không cần
+    tag/DOI mới.
+  - **A7 (Figure 2 caption)**: XONG. Caption gốc chỉ nói "hollow markers are bins with fewer than
+    50 test images (not tested)" mà không nói rõ D1 có bin nào như vậy không — gây hiểu lầm có thể
+    có marker rỗng trong hình. Thêm vế "; none occur in D1." Build lại PDF sạch, `pdftotext` xác
+    nhận đúng.
+  - **B1 (Figure 3 label offset)**: sửa code xong, CHƯA regenerate PNG. `scripts/make_paper_assets.py`
+    hàm `fig_d2_fidelity`: thêm dict `label_offset = {"swinir_classical": (5, 8), "span": (5,
+    -10)}`, dùng `label_offset.get(m, (5, 3))` thay cho offset cố định `(5, 3)` cho mọi nhãn — 2
+    model có PSNR/SSIM/Rank-1 gần nhau (35.66 vs 35.56 dB, 0.951 vs 0.949, 91.1 vs 90.9%) không còn
+    đè nhãn lên nhau.
+  - **B2 (Figure 4 fontsize)**: sửa code xong ở CẢ 2 repo, CHƯA regenerate PNG.
+    `src/sr4rec/report/comparisons.py` (dùng chung với panel `comparisons/` thật của người dùng,
+    không chỉ hình trong bài): `fontsize=7.5`→`9.5` (caption "pred:.../✓ correct" dưới mỗi ảnh),
+    `fontsize=8.5`→`10` (title mỗi panel). Đã sync sang `sr4rec/src/sr4rec/report/comparisons.py`.
+    `tests/test_report_format.py` pass sạch ở cả 2 repo (không có test assert fontsize cụ thể).
+  - Còn lại: A6 (Rank-1 2 chữ số thập phân Table 4); B1/B2 cần người dùng chạy lại trên labai217
+    (dữ liệu D2/D1 thật) để regenerate `fig_d2_fidelity.png`/`fig_d1_qualitative.png`, gửi PNG mới
+    để thay vào `paper/figures/` và build PDF lần cuối.

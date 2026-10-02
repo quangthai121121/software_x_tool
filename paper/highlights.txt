@@ -1,0 +1,5 @@
+SR4Rec measures whether super-resolution helps closed-set image recognition.
+One configuration file and three commands run split, SR, training and tests.
+Any SR model works: a weights file, a PyTorch class, or precomputed images.
+Real-world SR raised Rank-1 on ear images; no SR model helped on synthetic faces.
+A single command re-runs a demonstration and checks it against expected results.
