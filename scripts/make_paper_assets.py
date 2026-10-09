@@ -362,32 +362,24 @@ def fig_d2_fidelity(d2: RunData, out: Path) -> None:
     q = d2.quality.groupby("method")[["psnr", "ssim"]].mean()
     b = d2.backbones[0]
     markers = {"bicubic degradation": "o", "real-world degradation": "^", "n/a": "s", "unknown": "D"}
-    # bicubic, swinir_realworld and realesrgan sit on a near-diagonal line (PSNR and SSIM both
-    # increase together with Rank-1 across the three), so a shared offset stacks their labels along
-    # that same diagonal; swinir_classical and span sit almost on top of each other on the x axis.
-    # Give every label its own offset, spread in a different direction, instead of one shared default.
-    label_offset = {
-        "bicubic": (8, 12), "realesrgan": (-5, -15), "swinir_realworld": (-38, 0),
-        "swinir_classical": (10, 10), "span": (10, -16),
-    }
+    methods = ["bicubic"] + d2.sr
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.9))
     for ax, col, xlabel in zip(axes, ("psnr", "ssim"), ("PSNR (dB, Y channel)", "SSIM (Y channel)"), strict=True):
-        for i, m in enumerate(["bicubic"] + d2.sr):
+        for i, m in enumerate(methods):
             acc = 100 * d2.mean(b, m, "rank1")
             sd = 100 * float(np.std(d2.per_seed(b, m, "rank1"), ddof=1)) if len(d2.seeds) > 1 else 0.0
             kind = d2.trained_for(m)
             color = style.style_for(i)["color"]
             ax.errorbar(q.loc[m, col], acc, yerr=sd, marker=markers[kind], color=color, capsize=2, linestyle="none")
-            # Colour the label like its marker so it stays identifiable even where labels or error
-            # bars of different methods pass close to each other.
-            ax.annotate(m, (q.loc[m, col], acc), textcoords="offset points",
-                        xytext=label_offset[m], fontsize=6.5, color=color)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(f"Rank-1, {backbone_display(b)} (%)")
         ax.margins(x=0.25, y=0.15)
-    handles = [plt.Line2D([], [], color="black", marker=mk, linestyle="none", label=k)
-               for k, mk in markers.items() if k != "unknown"]
-    fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=6.5, frameon=False, bbox_to_anchor=(0.5, -0.1))
+    # One legend entry per method (name, colour and marker together) instead of floating labels next
+    # to each point: labels placed near close-together points collide, a fixed-position legend never
+    # does (see Figure~\ref{fig:size} for the same pattern).
+    handles = [plt.Line2D([], [], color=style.style_for(i)["color"], marker=markers[d2.trained_for(m)],
+                          linestyle="none", label=m) for i, m in enumerate(methods)]
+    fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=6.5, frameon=False, bbox_to_anchor=(0.5, -0.18))
     fig.savefig(out)
     plt.close(fig)
 
